@@ -36,10 +36,34 @@ import ctranslate2
 import transformers
 from utils import errorLogging, getBestComputeType
 
+import sys
 import warnings
 from typing import Any, Optional, Tuple
 
 warnings.filterwarnings("ignore")
+
+
+def _get_safe_path(path: str) -> str:
+    """Convert path to Windows short path (8.3) if it contains non-ASCII chars.
+
+    sentencepiece's C++ library cannot handle non-ASCII paths on Windows.
+    This returns the short (8.3) path when available, falling back to the
+    original path on non-Windows or when short names are unavailable.
+    """
+    try:
+        if sys.platform != "win32":
+            return path
+        if path.isascii():
+            return path
+        import ctypes
+        buf_size = ctypes.windll.kernel32.GetShortPathNameW(path, None, 0)
+        if buf_size == 0:
+            return path
+        buf = ctypes.create_unicode_buffer(buf_size)
+        ctypes.windll.kernel32.GetShortPathNameW(path, buf, buf_size)
+        return buf.value or path
+    except Exception:
+        return path
 
 
 class Translator:
@@ -624,6 +648,10 @@ class Translator:
         weight_path = os_path.join(path, "weights", "ctranslate2", directory_name)
         tokenizer_path = os_path.join(path, "weights", "ctranslate2", directory_name, "tokenizer")
 
+        # sentencepiece cannot handle non-ASCII paths on Windows
+        weight_path = _get_safe_path(weight_path)
+        tokenizer_path = _get_safe_path(tokenizer_path)
+
         if compute_type == "auto":
             compute_type = getBestComputeType(device, device_index)
         self.ctranslate2_translator = ctranslate2.Translator(
@@ -638,7 +666,7 @@ class Translator:
             self.ctranslate2_tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer, cache_dir=tokenizer_path)
         except Exception:
             errorLogging()
-            tokenizer_path = os_path.join("./weights", "ctranslate2", directory_name, "tokenizer")
+            tokenizer_path = _get_safe_path(os_path.join("./weights", "ctranslate2", directory_name, "tokenizer"))
             self.ctranslate2_tokenizer = transformers.AutoTokenizer.from_pretrained(tokenizer, cache_dir=tokenizer_path)
         self.is_loaded_ctranslate2_model = True
 

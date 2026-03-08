@@ -12,6 +12,7 @@ The functions are defensive: failures are caught and reported by the caller.
 from os import path as os_path, makedirs as os_makedirs
 from requests import get as requests_get
 from typing import Callable, Optional
+import sys
 import huggingface_hub
 from faster_whisper import WhisperModel
 import logging
@@ -19,6 +20,24 @@ from utils import getBestComputeType
 
 logger = logging.getLogger('faster_whisper')
 logger.setLevel(logging.CRITICAL)
+
+
+def _get_safe_path(path: str) -> str:
+    """Convert path to Windows short path (8.3) if it contains non-ASCII chars."""
+    try:
+        if sys.platform != "win32":
+            return path
+        if path.isascii():
+            return path
+        import ctypes
+        buf_size = ctypes.windll.kernel32.GetShortPathNameW(path, None, 0)
+        if buf_size == 0:
+            return path
+        buf = ctypes.create_unicode_buffer(buf_size)
+        ctypes.windll.kernel32.GetShortPathNameW(path, buf, buf_size)
+        return buf.value or path
+    except Exception:
+        return path
 
 _MODELS = {
     "tiny": "Systran/faster-whisper-tiny",
@@ -113,7 +132,7 @@ def getWhisperModel(
         ValueError: when VRAM shortage is detected (wrapped from RuntimeError)
         Exception: other loading errors are propagated.
     """
-    path = os_path.join(root, "weights", "whisper", weight_type)
+    path = _get_safe_path(os_path.join(root, "weights", "whisper", weight_type))
     if compute_type == "auto":
         compute_type = getBestComputeType(device, device_index)
     try:
