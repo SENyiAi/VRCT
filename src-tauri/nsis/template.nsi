@@ -588,29 +588,21 @@ Section Install
 
   !insertmacro CheckIfAppIsRunning
 
-  !addplugindir "..\..\..\..\nsis\plugins\x86-unicode"
-  ; 指定のURLからファイルをダウンロード
-  !define SOFTWARE_RELEASE_URL "https://huggingface.co/ms-software/VRCT/resolve/main"
-  !define SOFTWARE_DOWNLOAD_FILENAME "VRCT.zip"
-  Var /GLOBAL i
-  Var /GLOBAL cmder_dl
-  Var /GLOBAL cmder_version
-  Var /GLOBAL file_name
-  StrCpy $file_name "${SOFTWARE_DOWNLOAD_FILENAME}"
+  ; Copy main executable
+  File "${MAINBINARYSRCPATH}"
 
-  StrCpy $cmder_dl "${SOFTWARE_RELEASE_URL}/$file_name"
-  DetailPrint "Got URL : $cmder_dl"
+  ; Copy resources
+  {{#each resources_dirs}}
+    CreateDirectory "$INSTDIR\\{{this}}"
+  {{/each}}
+  {{#each resources}}
+    File /a "/oname={{this.[1]}}" "{{no-escape @key}}"
+  {{/each}}
 
-  DetailPrint "Downloading $file_name..."
-  inetc::get $cmder_dl "$TEMP\$file_name" /end
-  Pop $0
-  StrCmp "$0" "OK" dlok
-  DetailPrint "Download Failed $0"
-  Abort
-
-  dlok:
-  DetailPrint "Extracting $file_name ..."
-  nsisunz::UnzipToStack "$TEMP\$file_name" $INSTDIR
+  ; Copy external binaries
+  {{#each binaries}}
+    File /a "/oname={{this}}" "{{no-escape @key}}"
+  {{/each}}
 
   ; Create uninstaller
   WriteUninstaller "$INSTDIR\uninstall.exe"

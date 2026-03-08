@@ -389,10 +389,6 @@ config_page:
             desc: "與「{{convert_message_to_hiragana}}」同時啟用時，將透過滑鼠懸停顯示。"
         convert_message_to_hiragana:
             label: "顯示平假名"
-        telemetry:
-            label:
-            desc:
-            aptabase_privacy_policy_label:
 
     hotkeys:
         toggle_vrct_visibility:

@@ -389,10 +389,6 @@ config_page:
             desc:
         convert_message_to_hiragana:
             label:
-        telemetry:
-            label:
-            desc:
-            aptabase_privacy_policy_label:
 
     hotkeys:
         toggle_vrct_visibility:
