@@ -51,6 +51,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.15.0'
+          cache: 'npm'
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -60,7 +61,26 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache pip (standard)
+      # ── Caches ──
+      - name: Cache Rust (Cargo registry + target)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\.cargo\registry
+            ~\.cargo\git
+            src-tauri\target
+          key: rust-standard-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: rust-standard-
+
+      - name: Cache Python venv
+        id: cache-venv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-standard-py311-${{ hashFiles('requirements.txt') }}
+
+      - name: Cache pip downloads
+        if: steps.cache-venv.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ~\AppData\Local\pip\Cache
@@ -70,8 +90,16 @@ jobs:
       - name: Install Node dependencies
         run: npm install
 
+      # Only recreate venv when requirements changed (cache miss)
       - name: Setup Python environment (CPU only)
-        run: npm run setup-python-cpu
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          if (Test-Path .venv) { Remove-Item -Recurse -Force .venv }
+          python -m venv .venv
+          & .venv\Scripts\Activate.ps1
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Install Python script dependencies
         run: pip install tqdm
@@ -117,14 +145,14 @@ jobs:
           Write-Host "VRCT.exe: $vrct | Sidecar: $sc | _internal: $int"
           if (-not $vrct) { Write-Error "VRCT.exe not found!"; exit 1 }
 
-      # Use 7z for better compression
+      # Use 7z — mx=5 balances compression ratio vs speed
       - name: Create portable archive
         shell: pwsh
         run: |
           $target = "src-tauri\target\release"
-          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=7 -m0=LZMA2 VRCT.7z `
+          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=5 -m0=LZMA2 -mmt=on VRCT.7z `
             "$target\VRCT.exe" "$target\VRCT-sidecar.exe"
-          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=7 -m0=LZMA2 VRCT.7z `
+          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=5 -m0=LZMA2 -mmt=on VRCT.7z `
             "$target\_internal"
           $size = (Get-Item VRCT.7z).Length / 1MB
           Write-Host "Standard archive size: $([math]::Round($size, 1)) MB"
@@ -158,6 +186,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.15.0'
+          cache: 'npm'
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -167,7 +196,26 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache pip (CUDA)
+      # ── Caches ──
+      - name: Cache Rust (Cargo registry + target)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\.cargo\registry
+            ~\.cargo\git
+            src-tauri\target
+          key: rust-cuda-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: rust-cuda-
+
+      - name: Cache Python venv (CUDA)
+        id: cache-venv-cuda
+        uses: actions/cache@v4
+        with:
+          path: .venv_cuda
+          key: venv-cuda-py311-${{ hashFiles('requirements_cuda.txt') }}
+
+      - name: Cache pip downloads (CUDA)
+        if: steps.cache-venv-cuda.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: ~\AppData\Local\pip\Cache
@@ -177,8 +225,16 @@ jobs:
       - name: Install Node dependencies
         run: npm install
 
+      # Only recreate venv when requirements changed (cache miss)
       - name: Setup Python environment (CUDA only)
-        run: npm run setup-python-cuda
+        if: steps.cache-venv-cuda.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          if (Test-Path .venv_cuda) { Remove-Item -Recurse -Force .venv_cuda }
+          python -m venv .venv_cuda
+          & .venv_cuda\Scripts\Activate.ps1
+          python -m pip install --upgrade pip
+          pip install -r requirements_cuda.txt
 
       - name: Install Python script dependencies
         run: pip install tqdm
@@ -221,14 +277,14 @@ jobs:
           Write-Host "VRCT.exe: $vrct | Sidecar: $sc | _internal: $int"
           if (-not $vrct) { Write-Error "VRCT.exe not found!"; exit 1 }
 
-      # Use 7z for CUDA — standard zip exceeds GitHub's 2GB upload limit
+      # Use 7z — mx=5 balances compression ratio vs speed
       - name: Create CUDA archive (7z for compression)
         shell: pwsh
         run: |
           $target = "src-tauri\target\release"
-          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=7 -m0=LZMA2 VRCT_cuda.7z `
+          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=5 -m0=LZMA2 -mmt=on VRCT_cuda.7z `
             "$target\VRCT.exe" "$target\VRCT-sidecar.exe"
-          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=7 -m0=LZMA2 VRCT_cuda.7z `
+          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=5 -m0=LZMA2 -mmt=on VRCT_cuda.7z `
             "$target\_internal"
           $size = (Get-Item VRCT_cuda.7z).Length / 1MB
           Write-Host "CUDA archive size: $([math]::Round($size, 1)) MB"
