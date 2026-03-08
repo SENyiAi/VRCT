@@ -481,6 +481,51 @@ class Translator:
     def updateSiliconFlowClient(self) -> None:
         self.siliconflow_client.updateClient()
 
+    def setSiliconFlowAsrCorrection(self, enabled: bool) -> None:
+        if self.siliconflow_client is not None:
+            self.siliconflow_client.enable_asr_correction = enabled
+
+    def getSiliconFlowAsrCorrection(self) -> bool:
+        if self.siliconflow_client is not None:
+            return self.siliconflow_client.enable_asr_correction
+        return False
+
+    def setSiliconFlowEnableThinking(self, enabled: bool) -> None:
+        if self.siliconflow_client is not None:
+            self.siliconflow_client.enable_thinking = enabled
+
+    def getSiliconFlowEnableThinking(self) -> bool:
+        if self.siliconflow_client is not None:
+            return self.siliconflow_client.enable_thinking
+        return False
+
+    def setSiliconFlowMaxTokens(self, value: int) -> None:
+        if self.siliconflow_client is not None:
+            self.siliconflow_client.max_tokens = value
+
+    def getSiliconFlowMaxTokens(self) -> int:
+        if self.siliconflow_client is not None:
+            return self.siliconflow_client.max_tokens
+        return 1024
+
+    def setSiliconFlowTemperature(self, value: float) -> None:
+        if self.siliconflow_client is not None:
+            self.siliconflow_client.temperature = value
+
+    def getSiliconFlowTemperature(self) -> float:
+        if self.siliconflow_client is not None:
+            return self.siliconflow_client.temperature
+        return 0.4
+
+    def setSiliconFlowCustomSystemPrompt(self, value: str) -> None:
+        if self.siliconflow_client is not None:
+            self.siliconflow_client.custom_system_prompt = value
+
+    def getSiliconFlowCustomSystemPrompt(self) -> str:
+        if self.siliconflow_client is not None:
+            return self.siliconflow_client.custom_system_prompt
+        return ""
+
     def getLMStudioConnected(self) -> bool:
         """Get LM Studio connection status.
 

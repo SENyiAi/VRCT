@@ -263,6 +263,19 @@ config_page:
             label: "SiliconFlow 認証キー"
         select_siliconflow_model:
             label: "SiliconFlow モデルを選択"
+        siliconflow_max_tokens:
+            label: "最大トークン数"
+        siliconflow_temperature:
+            label: "Temperature"
+        siliconflow_custom_system_prompt:
+            label: "カスタムシステムプロンプト"
+            desc: "空の場合はデフォルトの翻訳プロンプトを使用。変数: {input_lang}, {output_lang}"
+        siliconflow_asr_correction:
+            label: "中国語ASRエラー修正+翻訳融合"
+            desc: "ASR修正と翻訳を1回のリクエストに統合して高速化"
+        siliconflow_enable_thinking:
+            label: "思考モードを有効にする"
+            desc: "モデルの推論思考を有効にする（3-10秒の遅延が加わります）"
 
         lmstudio_connection_check:
             label: "LM Studio との接続確認"

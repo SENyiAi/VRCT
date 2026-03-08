@@ -263,6 +263,19 @@ config_page:
             label: "矽基流動 Auth Key"
         select_siliconflow_model:
             label: "選擇矽基流動模型"
+        siliconflow_max_tokens:
+            label: "最大Token數"
+        siliconflow_temperature:
+            label: "Temperature（創造性）"
+        siliconflow_custom_system_prompt:
+            label: "自訂系統提示詞"
+            desc: "留空則使用預設翻譯提示詞。可用變數：{input_lang}、{output_lang}"
+        siliconflow_asr_correction:
+            label: "中文語音辨識糾錯+翻譯融合"
+            desc: "將ASR糾錯與翻譯融合為單次請求，提升推理速度"
+        siliconflow_enable_thinking:
+            label: "啟用思維模式"
+            desc: "啟用模型推理思考（會增加3-10秒延遲，不建議即時聊天使用）"
 
         lmstudio_connection_check:
             label:

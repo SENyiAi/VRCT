@@ -99,6 +99,11 @@ export const Translation = () => {
 
             <SiliconFlowAuthKey_Box />
             <SiliconFlowModelContainer />
+            <SiliconFlowMaxTokens_Box />
+            <SiliconFlowTemperature_Box />
+            <SiliconFlowCustomSystemPrompt_Box />
+            <SiliconFlowAsrCorrection_Box />
+            <SiliconFlowEnableThinking_Box />
 
             <LMStudioConnectionCheck_Box />
             <LMStudioURL_Box />
@@ -1367,6 +1372,104 @@ const SiliconFlowModelContainer = () => {
             selectFunction={selectFunction}
             state={currentSelectedSiliconFlowModel.state}
             is_disabled={!currentSiliconFlowAuthKey.data}
+        />
+    );
+};
+
+// --- Extra params for SiliconFlow ---
+const SiliconFlowAsrCorrection_Box = () => {
+    const { t } = useI18n();
+    const { currentSiliconFlowAsrCorrection, toggleSiliconFlowAsrCorrection } = useTranslation();
+
+    return (
+        <SwitchBoxContainer
+            label={t("config_page.translation.siliconflow_asr_correction.label")}
+            desc={t("config_page.translation.siliconflow_asr_correction.desc")}
+            variable={currentSiliconFlowAsrCorrection.data}
+            toggleFunction={toggleSiliconFlowAsrCorrection}
+            remove_border_bottom={true}
+        />
+    );
+};
+
+const SiliconFlowEnableThinking_Box = () => {
+    const { t } = useI18n();
+    const { currentSiliconFlowEnableThinking, toggleSiliconFlowEnableThinking } = useTranslation();
+
+    return (
+        <SwitchBoxContainer
+            label={t("config_page.translation.siliconflow_enable_thinking.label")}
+            desc={t("config_page.translation.siliconflow_enable_thinking.desc")}
+            variable={currentSiliconFlowEnableThinking.data}
+            toggleFunction={toggleSiliconFlowEnableThinking}
+            remove_border_bottom={true}
+        />
+    );
+};
+
+const SiliconFlowMaxTokens_Box = () => {
+    const { t } = useI18n();
+    const { currentSiliconFlowMaxTokens, setSiliconFlowMaxTokens } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentSiliconFlowMaxTokens.data,
+        state: currentSiliconFlowMaxTokens.state,
+        setFunction: setSiliconFlowMaxTokens,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.siliconflow_max_tokens.label")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentSiliconFlowMaxTokens.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+
+const SiliconFlowTemperature_Box = () => {
+    const { t } = useI18n();
+    const { currentSiliconFlowTemperature, setSiliconFlowTemperature } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentSiliconFlowTemperature.data,
+        state: currentSiliconFlowTemperature.state,
+        setFunction: setSiliconFlowTemperature,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.siliconflow_temperature.label")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentSiliconFlowTemperature.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+
+const SiliconFlowCustomSystemPrompt_Box = () => {
+    const { t } = useI18n();
+    const { currentSiliconFlowCustomSystemPrompt, setSiliconFlowCustomSystemPrompt } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentSiliconFlowCustomSystemPrompt.data,
+        state: currentSiliconFlowCustomSystemPrompt.state,
+        setFunction: setSiliconFlowCustomSystemPrompt,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.siliconflow_custom_system_prompt.label")}
+            desc={t("config_page.translation.siliconflow_custom_system_prompt.desc")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentSiliconFlowCustomSystemPrompt.state}
+            remove_border_bottom={true}
         />
     );
 };

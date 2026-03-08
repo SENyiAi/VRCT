@@ -263,6 +263,19 @@ config_page:
             label: "硅基流动 Auth Key"
         select_siliconflow_model:
             label: "选择硅基流动模型"
+        siliconflow_max_tokens:
+            label: "最大Token数"
+        siliconflow_temperature:
+            label: "Temperature（创造性）"
+        siliconflow_custom_system_prompt:
+            label: "自定义系统提示词"
+            desc: "留空则使用默认翻译提示词。可用变量：{input_lang}、{output_lang}"
+        siliconflow_asr_correction:
+            label: "中文语音识别纠错+翻译融合"
+            desc: "将ASR纠错与翻译融合为单次请求，提升推理速度"
+        siliconflow_enable_thinking:
+            label: "启用思维模式"
+            desc: "启用模型推理思考（会增加3-10秒延迟，不建议实时聊天使用）"
 
         lmstudio_connection_check:
             label:

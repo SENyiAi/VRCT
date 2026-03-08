@@ -418,6 +418,21 @@ class Model:
         self.ensure_initialized()
         self.translator.updateSiliconFlowClient()
 
+    def setTranslatorSiliconFlowAsrCorrection(self, enabled: bool) -> None:
+        self.translator.setSiliconFlowAsrCorrection(enabled)
+
+    def setTranslatorSiliconFlowEnableThinking(self, enabled: bool) -> None:
+        self.translator.setSiliconFlowEnableThinking(enabled)
+
+    def setTranslatorSiliconFlowMaxTokens(self, value: int) -> None:
+        self.translator.setSiliconFlowMaxTokens(value)
+
+    def setTranslatorSiliconFlowTemperature(self, value: float) -> None:
+        self.translator.setSiliconFlowTemperature(value)
+
+    def setTranslatorSiliconFlowCustomSystemPrompt(self, value: str) -> None:
+        self.translator.setSiliconFlowCustomSystemPrompt(value)
+
     def getTranslatorLMStudioConnected(self) -> bool:
         self.ensure_initialized()
         return self.translator.getLMStudioConnected()

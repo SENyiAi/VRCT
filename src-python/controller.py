@@ -2616,6 +2616,11 @@ class Controller:
                         config.SELECTED_SILICONFLOW_MODEL = config.SELECTABLE_SILICONFLOW_MODEL_LIST[0]
                     model.setTranslatorSiliconFlowModel(model=config.SELECTED_SILICONFLOW_MODEL)
                     self.run(200, self.run_mapping["selected_siliconflow_model"], config.SELECTED_SILICONFLOW_MODEL)
+                    model.setTranslatorSiliconFlowAsrCorrection(config.SILICONFLOW_ENABLE_ASR_CORRECTION)
+                    model.setTranslatorSiliconFlowEnableThinking(config.SILICONFLOW_ENABLE_THINKING)
+                    model.setTranslatorSiliconFlowMaxTokens(config.SILICONFLOW_MAX_TOKENS)
+                    model.setTranslatorSiliconFlowTemperature(config.SILICONFLOW_TEMPERATURE)
+                    model.setTranslatorSiliconFlowCustomSystemPrompt(config.SILICONFLOW_CUSTOM_SYSTEM_PROMPT)
                     model.updateTranslatorSiliconFlowClient()
                     self.updateTranslationEngineAndEngineList()
                     response = {"status":200, "result":config.AUTH_KEYS[translator_name]}
@@ -2680,6 +2685,79 @@ class Controller:
                 data=config.SELECTED_SILICONFLOW_MODEL
             )
         return response
+
+    # --- SiliconFlow extra params ---
+    @staticmethod
+    def getSiliconFlowAsrCorrection(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.SILICONFLOW_ENABLE_ASR_CORRECTION}
+
+    def setEnableSiliconFlowAsrCorrection(self, *args, **kwargs) -> dict:
+        config.SILICONFLOW_ENABLE_ASR_CORRECTION = True
+        model.setTranslatorSiliconFlowAsrCorrection(True)
+        return {"status":200, "result":config.SILICONFLOW_ENABLE_ASR_CORRECTION}
+
+    def setDisableSiliconFlowAsrCorrection(self, *args, **kwargs) -> dict:
+        config.SILICONFLOW_ENABLE_ASR_CORRECTION = False
+        model.setTranslatorSiliconFlowAsrCorrection(False)
+        return {"status":200, "result":config.SILICONFLOW_ENABLE_ASR_CORRECTION}
+
+    @staticmethod
+    def getSiliconFlowEnableThinking(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.SILICONFLOW_ENABLE_THINKING}
+
+    def setEnableSiliconFlowEnableThinking(self, *args, **kwargs) -> dict:
+        config.SILICONFLOW_ENABLE_THINKING = True
+        model.setTranslatorSiliconFlowEnableThinking(True)
+        model.updateTranslatorSiliconFlowClient()
+        return {"status":200, "result":config.SILICONFLOW_ENABLE_THINKING}
+
+    def setDisableSiliconFlowEnableThinking(self, *args, **kwargs) -> dict:
+        config.SILICONFLOW_ENABLE_THINKING = False
+        model.setTranslatorSiliconFlowEnableThinking(False)
+        model.updateTranslatorSiliconFlowClient()
+        return {"status":200, "result":config.SILICONFLOW_ENABLE_THINKING}
+
+    @staticmethod
+    def getSiliconFlowMaxTokens(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.SILICONFLOW_MAX_TOKENS}
+
+    def setSiliconFlowMaxTokens(self, data, *args, **kwargs) -> dict:
+        try:
+            config.SILICONFLOW_MAX_TOKENS = int(data)
+            model.setTranslatorSiliconFlowMaxTokens(int(data))
+            model.updateTranslatorSiliconFlowClient()
+            return {"status":200, "result":config.SILICONFLOW_MAX_TOKENS}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.SILICONFLOW_MAX_TOKENS)
+
+    @staticmethod
+    def getSiliconFlowTemperature(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.SILICONFLOW_TEMPERATURE}
+
+    def setSiliconFlowTemperature(self, data, *args, **kwargs) -> dict:
+        try:
+            config.SILICONFLOW_TEMPERATURE = float(data)
+            model.setTranslatorSiliconFlowTemperature(float(data))
+            model.updateTranslatorSiliconFlowClient()
+            return {"status":200, "result":config.SILICONFLOW_TEMPERATURE}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.SILICONFLOW_TEMPERATURE)
+
+    @staticmethod
+    def getSiliconFlowCustomSystemPrompt(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.SILICONFLOW_CUSTOM_SYSTEM_PROMPT}
+
+    def setSiliconFlowCustomSystemPrompt(self, data, *args, **kwargs) -> dict:
+        try:
+            data = str(data)
+            config.SILICONFLOW_CUSTOM_SYSTEM_PROMPT = data
+            model.setTranslatorSiliconFlowCustomSystemPrompt(data)
+            return {"status":200, "result":config.SILICONFLOW_CUSTOM_SYSTEM_PROMPT}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.SILICONFLOW_CUSTOM_SYSTEM_PROMPT)
 
     def getTranslatorLMStudioConnection(self, *args, **kwargs) -> dict:
         return {"status":200, "result":model.getTranslatorLMStudioConnected()}
@@ -4058,6 +4136,11 @@ class Controller:
                             config.SELECTABLE_SILICONFLOW_MODEL_LIST = model_list
                             config.SELECTED_SILICONFLOW_MODEL = selected_model
                             model.setTranslatorSiliconFlowModel(selected_model)
+                            model.setTranslatorSiliconFlowAsrCorrection(config.SILICONFLOW_ENABLE_ASR_CORRECTION)
+                            model.setTranslatorSiliconFlowEnableThinking(config.SILICONFLOW_ENABLE_THINKING)
+                            model.setTranslatorSiliconFlowMaxTokens(config.SILICONFLOW_MAX_TOKENS)
+                            model.setTranslatorSiliconFlowTemperature(config.SILICONFLOW_TEMPERATURE)
+                            model.setTranslatorSiliconFlowCustomSystemPrompt(config.SILICONFLOW_CUSTOM_SYSTEM_PROMPT)
                             model.updateTranslatorSiliconFlowClient()
                         case "LMStudio":
                             config.SELECTABLE_LMSTUDIO_MODEL_LIST = model_list

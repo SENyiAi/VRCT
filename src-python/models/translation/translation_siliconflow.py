@@ -71,9 +71,17 @@ class SiliconFlowClient:
         self.model = None
         self.base_url = "https://api.siliconflow.cn/v1"
 
+        # Model parameters
+        self.enable_asr_correction = False
+        self.enable_thinking = False
+        self.max_tokens = 1024
+        self.temperature = 0.4
+        self.custom_system_prompt = ""
+
         prompt_config = loadTranslatePromptConfig(root_path, "translation_siliconflow.yml")
         self.supported_languages = list(translation_lang["SiliconFlow_API"]["source"].keys())
         self.prompt_template = prompt_config["system_prompt"]
+        self.prompt_template_asr_correction = prompt_config.get("system_prompt_asr_correction", self.prompt_template)
         self.history_cfg = prompt_config.get("history", {
             "use_history": False,
             "sources": [],
@@ -109,18 +117,36 @@ class SiliconFlowClient:
             return False
 
     def updateClient(self) -> None:
+        extra_kwargs = {}
+        if self.enable_thinking:
+            extra_kwargs["top_p"] = 0.9
+            extra_kwargs["top_k"] = 40
+            extra_kwargs["min_p"] = 0.05
+        else:
+            extra_kwargs["top_p"] = 0.9
+            extra_kwargs["top_k"] = 40
+            extra_kwargs["min_p"] = 0.05
         self.siliconflow_llm = ChatOpenAI(
             base_url=self.base_url,
             model=self.model,
             api_key=SecretStr(self.api_key),
             streaming=False,
+            max_tokens=self.max_tokens if self.max_tokens > 0 else None,
+            temperature=self.temperature,
+            model_kwargs=extra_kwargs,
         )
 
     def setContextHistory(self, history_items: list[dict]) -> None:
         self._context_history = history_items or []
 
     def translate(self, text: str, input_lang: str, output_lang: str) -> str:
-        system_prompt = self.prompt_template.format(
+        if self.custom_system_prompt:
+            template = self.custom_system_prompt
+        elif self.enable_asr_correction:
+            template = self.prompt_template_asr_correction
+        else:
+            template = self.prompt_template
+        system_prompt = template.format(
             supported_languages=self.supported_languages,
             input_lang=input_lang,
             output_lang=output_lang,

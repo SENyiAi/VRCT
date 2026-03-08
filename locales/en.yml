@@ -263,6 +263,19 @@ config_page:
             label: "SiliconFlow Auth Key"
         select_siliconflow_model:
             label: "Select SiliconFlow Model"
+        siliconflow_max_tokens:
+            label: "Max Tokens"
+        siliconflow_temperature:
+            label: "Temperature"
+        siliconflow_custom_system_prompt:
+            label: "Custom System Prompt"
+            desc: "Leave empty to use the default translation prompt. Variables: {input_lang}, {output_lang}"
+        siliconflow_asr_correction:
+            label: "Chinese ASR Error Correction"
+            desc: "Fuse ASR correction with translation in a single request for faster inference"
+        siliconflow_enable_thinking:
+            label: "Enable Thinking Mode"
+            desc: "Enable model reasoning (adds 3-10s latency, not recommended for real-time chat)"
 
         lmstudio_connection_check:
             label: "Check LM Studio Connection"

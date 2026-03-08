@@ -263,6 +263,16 @@ config_page:
             label:
         select_siliconflow_model:
             label:
+        siliconflow_max_tokens:
+            label:
+        siliconflow_temperature:
+            label:
+        siliconflow_custom_system_prompt:
+            label:
+        siliconflow_asr_correction:
+            label:
+        siliconflow_enable_thinking:
+            label:
 
         lmstudio_connection_check:
             label:

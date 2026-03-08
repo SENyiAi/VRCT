@@ -720,6 +720,13 @@ class Config:
     CUSTOM_OPENAI_TEMPERATURE_3 = ManagedProperty('CUSTOM_OPENAI_TEMPERATURE_3', type_=(int, float))
     CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_3 = ManagedProperty('CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_3', type_=str)
 
+    # SiliconFlow settings
+    SILICONFLOW_ENABLE_ASR_CORRECTION = ManagedProperty('SILICONFLOW_ENABLE_ASR_CORRECTION', type_=bool)
+    SILICONFLOW_ENABLE_THINKING = ManagedProperty('SILICONFLOW_ENABLE_THINKING', type_=bool)
+    SILICONFLOW_MAX_TOKENS = ManagedProperty('SILICONFLOW_MAX_TOKENS', type_=int)
+    SILICONFLOW_TEMPERATURE = ManagedProperty('SILICONFLOW_TEMPERATURE', type_=(int, float))
+    SILICONFLOW_CUSTOM_SYSTEM_PROMPT = ManagedProperty('SILICONFLOW_CUSTOM_SYSTEM_PROMPT', type_=str)
+
     # Fallback settings
     TRANSLATION_FALLBACK_ENABLED = ManagedProperty('TRANSLATION_FALLBACK_ENABLED', type_=bool)
     TRANSLATION_FALLBACK_TIMEOUT = ManagedProperty('TRANSLATION_FALLBACK_TIMEOUT', type_=(int, float))
@@ -993,6 +1000,11 @@ class Config:
         self._SELECTED_GROQ_MODEL = None
         self._SELECTED_OPENROUTER_MODEL = None
         self._SELECTED_SILICONFLOW_MODEL = None
+        self._SILICONFLOW_ENABLE_ASR_CORRECTION = False
+        self._SILICONFLOW_ENABLE_THINKING = False
+        self._SILICONFLOW_MAX_TOKENS = 1024
+        self._SILICONFLOW_TEMPERATURE = 0.4
+        self._SILICONFLOW_CUSTOM_SYSTEM_PROMPT = ""
         self._LMSTUDIO_URL = "http://127.0.0.1:1234/v1"
         self._CUSTOM_OPENAI_URL = ""
         self._CUSTOM_OPENAI_MODEL = ""
