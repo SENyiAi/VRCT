@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*' # タグが 'v' で始まる場合にトリガー (例: v1.0.0)
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g. 3.5.0)'
+        required: true
+        default: '3.5.0'
 
 jobs:
   release:
@@ -48,8 +54,12 @@ jobs:
         id: get_version
         shell: pwsh
         run: |
-          $TAG_WITH_V = $env:GITHUB_REF -replace "^refs/tags/", ""
-          $VERSION_NUM = $TAG_WITH_V -replace "^v", ""
+          if ($env:GITHUB_EVENT_NAME -eq "workflow_dispatch") {
+            $VERSION_NUM = "${{ github.event.inputs.version }}"
+          } else {
+            $TAG_WITH_V = $env:GITHUB_REF -replace "^refs/tags/", ""
+            $VERSION_NUM = $TAG_WITH_V -replace "^v", ""
+          }
           echo "VERSION=$VERSION_NUM" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Upload to Hugging Face Hub
