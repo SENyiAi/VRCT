@@ -58,6 +58,9 @@ export const _useBackendErrorHandling = () => {
         updateOpenRouterAuthKey,
         updateSelectedOpenRouterModel,
 
+        updateSiliconFlowAuthKey,
+        updateSelectedSiliconFlowModel,
+
         updateLMStudioURL,
         updateSelectedLMStudioModel,
 
@@ -211,6 +214,11 @@ export const _useBackendErrorHandling = () => {
                 updateOpenRouterAuthKey(data);
                 showNotification_Error(message, { category_id: error_code });
                 return;
+            case "AUTH_SILICONFLOW_INVALID":
+            case "AUTH_SILICONFLOW_FAILED":
+                updateSiliconFlowAuthKey(data);
+                showNotification_Error(message, { category_id: error_code });
+                return;
 
             // ============================================================================
             // モデル選択エラー (MODEL_*)
@@ -233,6 +241,10 @@ export const _useBackendErrorHandling = () => {
                 return;
             case "MODEL_OPENROUTER_INVALID":
                 updateSelectedOpenRouterModel(data);
+                showNotification_Error(message, { category_id: error_code });
+                return;
+            case "MODEL_SILICONFLOW_INVALID":
+                updateSelectedSiliconFlowModel(data);
                 showNotification_Error(message, { category_id: error_code });
                 return;
             case "MODEL_LMSTUDIO_INVALID":

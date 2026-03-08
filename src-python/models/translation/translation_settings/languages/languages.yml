@@ -779,6 +779,10 @@ OpenRouter_API:
   source: *openai_langs
   target: *openai_langs
 
+SiliconFlow_API:
+  source: *openai_langs
+  target: *openai_langs
+
 Custom_OpenAI_API:
   source: *openai_langs
   target: *openai_langs

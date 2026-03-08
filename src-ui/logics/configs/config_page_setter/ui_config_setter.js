@@ -567,6 +567,34 @@ export const SETTINGS_ARRAY = [
         add_endpoint_run_array: ["from_backend"],
         base_endpoint_name: "selected_openrouter_model",
     },
+    // SiliconFlow
+    {
+        Category: "Translation",
+        Base_Name: "SiliconFlowAuthKey",
+        default_value: "",
+        ui_template_id: "input",
+        logics_template_id: "get_set_delete",
+        base_endpoint_name: "siliconflow_auth_key",
+    },
+    {
+        Category: "Translation",
+        Base_Name: "SelectableSiliconFlowModelList",
+        default_value: [],
+        ui_template_id: "list",
+        logics_template_id: "get_set",
+        add_endpoint_run_array: ["from_backend"],
+        base_endpoint_name: "selectable_siliconflow_model_list",
+        response_transform: "arrayToObject",
+    },
+    {
+        Category: "Translation",
+        Base_Name: "SelectedSiliconFlowModel",
+        default_value: "",
+        ui_template_id: "select",
+        logics_template_id: "get_set",
+        add_endpoint_run_array: ["from_backend"],
+        base_endpoint_name: "selected_siliconflow_model",
+    },
     // LM Studio
     {
         Category: "Translation",

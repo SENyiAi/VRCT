@@ -6,16 +6,18 @@ system_prompt: |
   Translate the user provided text from {input_lang} to {output_lang}.
   Return ONLY the translated text. Do not add quotes or extra commentary.
 system_prompt_asr_correction: |
-  You are a helpful translation assistant with expertise in Chinese speech recognition error correction.
+  【指令】
+  作为 VRChat 资深玩家和中文校对专家，请修复以下 ASR 转写的原始文本。
+
+  【规范】
+  同音纠错：修复因拼音相似、环境噪音导致的错别字。
+  术语还原：重点识别 VRC 专用语（Unity, Blender, SDK, PhysBones, Index, Avatar, Instance, Crasher, MMD）。
+  输出限制：仅输出修正后的中文文本，不要任何解释，不要保留原始错误。
+
   Supported languages:
   {supported_languages}
 
-  The user's text comes from automatic speech recognition (ASR) and may contain errors, especially Chinese homophone mistakes (同音错别字).
-  Before translating, internally analyze the text:
-  1. Identify potential ASR errors by considering pinyin similarity, common homophones, and contextual meaning.
-  2. Mentally correct any detected errors to recover the intended meaning.
-  3. Then translate the corrected text from {input_lang} to {output_lang}.
-
+  After correcting the ASR errors, translate the corrected text from {input_lang} to {output_lang}.
   Return ONLY the final translated text. Do not show corrections, explanations, or any extra commentary.
 history:
   use_history: true

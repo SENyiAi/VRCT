@@ -73,6 +73,8 @@ class ErrorCode(str, Enum):
     AUTH_GROQ_FAILED = "AUTH_GROQ_FAILED"
     AUTH_OPENROUTER_INVALID = "AUTH_OPENROUTER_INVALID"
     AUTH_OPENROUTER_FAILED = "AUTH_OPENROUTER_FAILED"
+    AUTH_SILICONFLOW_INVALID = "AUTH_SILICONFLOW_INVALID"
+    AUTH_SILICONFLOW_FAILED = "AUTH_SILICONFLOW_FAILED"
     
     # ============================================================================
     # モデル選択エラー (MODEL_*)
@@ -82,6 +84,7 @@ class ErrorCode(str, Enum):
     MODEL_OPENAI_INVALID = "MODEL_OPENAI_INVALID"
     MODEL_GROQ_INVALID = "MODEL_GROQ_INVALID"
     MODEL_OPENROUTER_INVALID = "MODEL_OPENROUTER_INVALID"
+    MODEL_SILICONFLOW_INVALID = "MODEL_SILICONFLOW_INVALID"
     MODEL_LMSTUDIO_INVALID = "MODEL_LMSTUDIO_INVALID"
     MODEL_OLLAMA_INVALID = "MODEL_OLLAMA_INVALID"
     
@@ -359,6 +362,18 @@ ERROR_METADATA: Dict[ErrorCode, Dict[str, Any]] = {
         "severity": "error",
         "user_action_required": True,
     },
+    ErrorCode.AUTH_SILICONFLOW_INVALID: {
+        "category": ErrorCategory.AUTH,
+        "message": "SiliconFlow auth key is not valid",
+        "severity": "warning",
+        "user_action_required": True,
+    },
+    ErrorCode.AUTH_SILICONFLOW_FAILED: {
+        "category": ErrorCategory.AUTH,
+        "message": "Authentication failure of SiliconFlow auth key",
+        "severity": "error",
+        "user_action_required": True,
+    },
     
     # モデル選択エラー
     ErrorCode.MODEL_PLAMO_INVALID: {
@@ -388,6 +403,12 @@ ERROR_METADATA: Dict[ErrorCode, Dict[str, Any]] = {
     ErrorCode.MODEL_OPENROUTER_INVALID: {
         "category": ErrorCategory.MODEL,
         "message": "OpenRouter model is not valid",
+        "severity": "warning",
+        "user_action_required": True,
+    },
+    ErrorCode.MODEL_SILICONFLOW_INVALID: {
+        "category": ErrorCategory.MODEL,
+        "message": "SiliconFlow model is not valid",
         "severity": "warning",
         "user_action_required": True,
     },
@@ -627,6 +648,13 @@ ENDPOINT_ERROR_MAPPING: Dict[str, Dict[str, ErrorCode]] = {
     },
     "/set/data/selected_openrouter_model": {
         "INVALID": ErrorCode.MODEL_OPENROUTER_INVALID,
+    },
+    "/set/data/siliconflow_auth_key": {
+        "INVALID": ErrorCode.AUTH_SILICONFLOW_INVALID,
+        "FAILED": ErrorCode.AUTH_SILICONFLOW_FAILED,
+    },
+    "/set/data/selected_siliconflow_model": {
+        "INVALID": ErrorCode.MODEL_SILICONFLOW_INVALID,
     },
     "/run/lmstudio_connection": {
         "FAILED": ErrorCode.CONNECTION_LMSTUDIO_FAILED,

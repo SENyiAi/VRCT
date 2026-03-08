@@ -18,11 +18,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[
-        'pandas', 'matplotlib', 'PyQt5',
-        'torch.testing', 'torch.utils.benchmark', 'torch.utils.tensorboard',
-        'IPython', 'PIL.ImageQt', 'tkinter', 'wx',
-    ],
+    excludes=['pandas', 'matplotlib', 'PyQt5'],
     noarchive=False,
     optimize=0,
 )

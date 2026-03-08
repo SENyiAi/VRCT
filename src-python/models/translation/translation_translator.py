@@ -17,6 +17,7 @@ try:
     from .translation_ollama import OllamaClient
     from .translation_groq import GroqClient
     from .translation_openrouter import OpenRouterClient
+    from .translation_siliconflow import SiliconFlowClient
 except Exception:
     import sys
     sys.path.append(os_path.dirname(os_path.dirname(os_path.dirname(os_path.abspath(__file__)))))
@@ -29,6 +30,7 @@ except Exception:
     from translation_ollama import OllamaClient
     from translation_groq import GroqClient
     from translation_openrouter import OpenRouterClient
+    from translation_siliconflow import SiliconFlowClient
 
 import ctranslate2
 import transformers
@@ -62,6 +64,7 @@ class Translator:
         self.custom_openai_connected_3: bool = False
         self.groq_client: Optional[GroqClient] = None
         self.openrouter_client: Optional[OpenRouterClient] = None
+        self.siliconflow_client: Optional[SiliconFlowClient] = None
         self.lmstudio_client: LMStudioClient[LMStudioClient] = None
         self.lmstudio_connected: bool = False
         self.ollama_client: OllamaClient[OllamaClient] = None
@@ -457,6 +460,27 @@ class Translator:
         """Update the OpenRouter client (fetch available models)."""
         self.openrouter_client.updateClient()
 
+    def authenticationSiliconFlowAuthKey(self, auth_key: str, root_path: str = None) -> bool:
+        self.siliconflow_client = SiliconFlowClient(root_path=root_path)
+        if self.siliconflow_client.setAuthKey(auth_key):
+            return True
+        else:
+            self.siliconflow_client = None
+            return False
+
+    def getSiliconFlowModelList(self) -> list[str]:
+        if self.siliconflow_client is None:
+            return []
+        return self.siliconflow_client.getModelList()
+
+    def setSiliconFlowModel(self, model: str) -> bool:
+        if self.siliconflow_client is None:
+            return False
+        return self.siliconflow_client.setModel(model)
+
+    def updateSiliconFlowClient(self) -> None:
+        self.siliconflow_client.updateClient()
+
     def getLMStudioConnected(self) -> bool:
         """Get LM Studio connection status.
 
@@ -756,6 +780,17 @@ class Translator:
                         if context_history:
                             self.openrouter_client.setContextHistory(context_history)
                         result = self.openrouter_client.translate(
+                            message,
+                            input_lang=source_language,
+                            output_lang=target_language,
+                        )
+                case "SiliconFlow_API":
+                    if self.siliconflow_client is None:
+                        result = False
+                    else:
+                        if context_history:
+                            self.siliconflow_client.setContextHistory(context_history)
+                        result = self.siliconflow_client.translate(
                             message,
                             input_lang=source_language,
                             output_lang=target_language,

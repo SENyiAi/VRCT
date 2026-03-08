@@ -259,6 +259,11 @@ config_page:
         select_openrouter_model:
             label: "Select OpenRouter Model"
 
+        siliconflow_auth_key:
+            label: "SiliconFlow Auth Key"
+        select_siliconflow_model:
+            label: "Select SiliconFlow Model"
+
         lmstudio_connection_check:
             label: "Check LM Studio Connection"
         select_lmstudio_model:

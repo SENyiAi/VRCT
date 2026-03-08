@@ -2416,6 +2416,9 @@ class Controller:
         except Exception as e:
             errorLogging()
             return VRCTError.create_exception_error_response(e, data=config.TRANSLATION_FALLBACK_ENGINE)
+
+    @staticmethod
+    def getGroqAuthKey(*args, **kwargs) -> dict:
         return {"status":200, "result":config.AUTH_KEYS["Groq_API"]}
 
     def setGroqAuthKey(self, data, *args, **kwargs) -> dict:
@@ -2587,6 +2590,94 @@ class Controller:
             response = VRCTError.create_exception_error_response(
                 e,
                 data=config.SELECTED_OPENROUTER_MODEL
+            )
+        return response
+
+    @staticmethod
+    def getSiliconFlowAuthKey(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.AUTH_KEYS["SiliconFlow_API"]}
+
+    def setSiliconFlowAuthKey(self, data, *args, **kwargs) -> dict:
+        printLog("Set SiliconFlow Auth Key", data)
+        translator_name = "SiliconFlow_API"
+        try:
+            data = str(data)
+            if len(data) >= 20:
+                result = model.authenticationTranslatorSiliconFlowAuthKey(auth_key=data)
+                if result is True:
+                    key = data
+                    auth_keys = config.AUTH_KEYS
+                    auth_keys[translator_name] = key
+                    config.AUTH_KEYS = auth_keys
+                    config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = True
+                    config.SELECTABLE_SILICONFLOW_MODEL_LIST = model.getTranslatorSiliconFlowModelList()
+                    self.run(200, self.run_mapping["selectable_siliconflow_model_list"], config.SELECTABLE_SILICONFLOW_MODEL_LIST)
+                    if config.SELECTED_SILICONFLOW_MODEL not in config.SELECTABLE_SILICONFLOW_MODEL_LIST:
+                        config.SELECTED_SILICONFLOW_MODEL = config.SELECTABLE_SILICONFLOW_MODEL_LIST[0]
+                    model.setTranslatorSiliconFlowModel(model=config.SELECTED_SILICONFLOW_MODEL)
+                    self.run(200, self.run_mapping["selected_siliconflow_model"], config.SELECTED_SILICONFLOW_MODEL)
+                    model.updateTranslatorSiliconFlowClient()
+                    self.updateTranslationEngineAndEngineList()
+                    response = {"status":200, "result":config.AUTH_KEYS[translator_name]}
+                else:
+                    response = VRCTError.create_error_response(
+                        ErrorCode.AUTH_SILICONFLOW_FAILED,
+                        data=None
+                    )
+            else:
+                response = VRCTError.create_error_response(
+                    ErrorCode.AUTH_SILICONFLOW_INVALID,
+                    data=None
+                )
+        except Exception as e:
+            errorLogging()
+            response = VRCTError.create_exception_error_response(
+                e,
+                data=None
+            )
+        if response["status"] == 400:
+            self.delSiliconFlowAuthKey()
+        return response
+
+    def delSiliconFlowAuthKey(self, *args, **kwargs) -> dict:
+        translator_name = "SiliconFlow_API"
+        auth_keys = config.AUTH_KEYS
+        auth_keys[translator_name] = None
+        config.AUTH_KEYS = auth_keys
+        config.SELECTABLE_SILICONFLOW_MODEL_LIST = []
+        config.SELECTED_SILICONFLOW_MODEL = None
+        self.run(200, self.run_mapping["selectable_siliconflow_model_list"], config.SELECTABLE_SILICONFLOW_MODEL_LIST)
+        self.run(200, self.run_mapping["selected_siliconflow_model"], config.SELECTED_SILICONFLOW_MODEL)
+        config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = False
+        self.updateTranslationEngineAndEngineList()
+        return {"status":200, "result":config.AUTH_KEYS[translator_name]}
+
+    def getSiliconFlowModelList(self, *args, **kwargs) -> dict:
+        return {"status":200, "result": config.SELECTABLE_SILICONFLOW_MODEL_LIST}
+
+    def getSiliconFlowModel(self, *args, **kwargs) -> dict:
+        return {"status":200, "result":config.SELECTED_SILICONFLOW_MODEL}
+
+    def setSiliconFlowModel(self, data, *args, **kwargs) -> dict:
+        printLog("Set SiliconFlow Model", data)
+        try:
+            data = str(data)
+            result = model.setTranslatorSiliconFlowModel(model=data)
+            if result is True:
+                config.SELECTED_SILICONFLOW_MODEL = data
+                model.setTranslatorSiliconFlowModel(model=config.SELECTED_SILICONFLOW_MODEL)
+                model.updateTranslatorSiliconFlowClient()
+                response = {"status":200, "result":config.SELECTED_SILICONFLOW_MODEL}
+            else:
+                response = VRCTError.create_error_response(
+                    ErrorCode.MODEL_SILICONFLOW_INVALID,
+                    data=config.SELECTED_SILICONFLOW_MODEL
+                )
+        except Exception as e:
+            errorLogging()
+            response = VRCTError.create_exception_error_response(
+                e,
+                data=config.SELECTED_SILICONFLOW_MODEL
             )
         return response
 
@@ -3888,6 +3979,15 @@ class Controller:
                             status = True
                         else:
                             auth_key_invalid = True
+                    case "SiliconFlow_API":
+                        if config.AUTH_KEYS.get(engine) is None:
+                            status = False
+                        elif model.authenticationTranslatorSiliconFlowAuthKey(auth_key=config.AUTH_KEYS[engine]):
+                            model_list = model.getTranslatorSiliconFlowModelList()
+                            selected_model = config.SELECTED_SILICONFLOW_MODEL if config.SELECTED_SILICONFLOW_MODEL in model_list else model_list[0]
+                            status = True
+                        else:
+                            auth_key_invalid = True
                     case "LMStudio":
                         if config.LMSTUDIO_URL is not None and model.authenticationTranslatorLMStudio(base_url=config.LMSTUDIO_URL):
                             model_list = model.getTranslatorLMStudioModelList()
@@ -3954,6 +4054,11 @@ class Controller:
                             config.SELECTED_OPENROUTER_MODEL = selected_model
                             model.setTranslatorOpenRouterModel(selected_model)
                             model.updateTranslatorOpenRouterClient()
+                        case "SiliconFlow_API":
+                            config.SELECTABLE_SILICONFLOW_MODEL_LIST = model_list
+                            config.SELECTED_SILICONFLOW_MODEL = selected_model
+                            model.setTranslatorSiliconFlowModel(selected_model)
+                            model.updateTranslatorSiliconFlowClient()
                         case "LMStudio":
                             config.SELECTABLE_LMSTUDIO_MODEL_LIST = model_list
                             config.SELECTED_LMSTUDIO_MODEL = selected_model

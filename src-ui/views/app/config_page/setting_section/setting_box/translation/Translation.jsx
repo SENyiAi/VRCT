@@ -37,6 +37,7 @@ import {
     openai_auth_key_url,
     groq_auth_key_url,
     openrouter_auth_key_url,
+    siliconflow_auth_key_url,
 } from "@ui_configs";
 
 import { useLLMConnection } from "@logics_common";
@@ -95,6 +96,9 @@ export const Translation = () => {
 
             <OpenRouterAuthKey_Box />
             <OpenRouterModelContainer />
+
+            <SiliconFlowAuthKey_Box />
+            <SiliconFlowModelContainer />
 
             <LMStudioConnectionCheck_Box />
             <LMStudioURL_Box />
@@ -1304,6 +1308,65 @@ const OpenRouterModelContainer = () => {
             selectFunction={selectFunction}
             state={currentSelectedOpenRouterModel.state}
             is_disabled={!currentOpenRouterAuthKey.data}
+        />
+    );
+};
+
+const SiliconFlowAuthKey_Box = () => {
+    const { t } = useI18n();
+    const { currentSiliconFlowAuthKey, setSiliconFlowAuthKey, deleteSiliconFlowAuthKey } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentSiliconFlowAuthKey.data,
+        state: currentSiliconFlowAuthKey.state,
+        setFunction: setSiliconFlowAuthKey,
+        deleteFunction: deleteSiliconFlowAuthKey,
+    });
+
+    return (
+        <>
+            <AuthKeyContainer
+                label={t("config_page.translation.siliconflow_auth_key.label")}
+                webpage_url={siliconflow_auth_key_url}
+                open_webpage_label={t("config_page.common.open_auth_key_webpage")}
+                variable={variable}
+                state={currentSiliconFlowAuthKey.state}
+                onChangeFunction={onChangeFunction}
+                saveFunction={saveFunction}
+                remove_border_bottom={true}
+            />
+        </>
+    );
+};
+const SiliconFlowModelContainer = () => {
+    const { t } = useI18n();
+    const {
+        currentSelectableSiliconFlowModelList,
+
+        currentSelectedSiliconFlowModel,
+        setSelectedSiliconFlowModel,
+
+        currentSiliconFlowAuthKey,
+    } = useTranslation();
+
+
+    const selectFunction = (selected_data) => {
+        setSelectedSiliconFlowModel(selected_data.selected_id);
+    };
+
+    let selected_label = (!currentSiliconFlowAuthKey.data && !currentSelectedSiliconFlowModel.data)
+        ? t("config_page.common.correct_auth_key_required")
+        : currentSelectedSiliconFlowModel.data;
+
+    return (
+        <DropdownMenuContainer
+            dropdown_id="select_siliconflow_model"
+            label={t("config_page.translation.select_siliconflow_model.label")}
+            selected_id={selected_label}
+            list={currentSelectableSiliconFlowModelList.data}
+            selectFunction={selectFunction}
+            state={currentSelectedSiliconFlowModel.state}
+            is_disabled={!currentSiliconFlowAuthKey.data}
         />
     );
 };

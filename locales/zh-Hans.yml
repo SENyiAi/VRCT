@@ -259,6 +259,11 @@ config_page:
         select_openrouter_model:
             label:
 
+        siliconflow_auth_key:
+            label: "硅基流动 Auth Key"
+        select_siliconflow_model:
+            label: "选择硅基流动模型"
+
         lmstudio_connection_check:
             label:
         select_lmstudio_model:

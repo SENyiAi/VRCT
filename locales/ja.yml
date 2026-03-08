@@ -259,6 +259,11 @@ config_page:
         select_openrouter_model:
             label: "OpenRouter モデルを選択"
 
+        siliconflow_auth_key:
+            label: "SiliconFlow 認証キー"
+        select_siliconflow_model:
+            label: "SiliconFlow モデルを選択"
+
         lmstudio_connection_check:
             label: "LM Studio との接続確認"
         select_lmstudio_model:

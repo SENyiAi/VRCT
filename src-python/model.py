@@ -401,6 +401,23 @@ class Model:
         self.ensure_initialized()
         self.translator.updateOpenRouterClient()
 
+    def authenticationTranslatorSiliconFlowAuthKey(self, auth_key: str) -> bool:
+        result = self.translator.authenticationSiliconFlowAuthKey(auth_key, root_path=config.PATH_LOCAL)
+        return result
+
+    def getTranslatorSiliconFlowModelList(self) -> list[str]:
+        self.ensure_initialized()
+        return self.translator.getSiliconFlowModelList()
+
+    def setTranslatorSiliconFlowModel(self, model: str) -> bool:
+        self.ensure_initialized()
+        result = self.translator.setSiliconFlowModel(model=model)
+        return result
+
+    def updateTranslatorSiliconFlowClient(self) -> None:
+        self.ensure_initialized()
+        self.translator.updateSiliconFlowClient()
+
     def getTranslatorLMStudioConnected(self) -> bool:
         self.ensure_initialized()
         return self.translator.getLMStudioConnected()

@@ -3,7 +3,7 @@ name: Release VRCT
 on:
   push:
     tags:
-      - 'v*' # タグが 'v' で始まる場合にトリガー (例: v1.0.0)
+      - 'v*'
   workflow_dispatch:
     inputs:
       version:
@@ -79,27 +79,61 @@ jobs:
       - name: Update version
         run: npm run update-version
 
-      - name: Build standard
-        run: npm run build
+      # Build steps run individually so we can use --no-bundle.
+      # NSIS cannot handle _internal (~2 GB) — mmap limit.
+      - name: Build Python backend
+        run: npm run build-python
 
-      - name: Create portable ZIP
-        run: python utils\zip.py --zip_name VRCT.zip
+      - name: Build frontend
+        run: npm run vite-build
 
-      - name: Collect NSIS installer
+      - name: Build Tauri binary (skip bundling)
+        run: npx tauri build --no-bundle
+
+      - name: Assemble portable files
         shell: pwsh
         run: |
-          $installer = Get-ChildItem -Path "src-tauri/target/release/bundle/nsis/" -Filter "*-setup.exe" | Select-Object -First 1
-          if (-not $installer) { Write-Error "NSIS installer not found"; exit 1 }
-          Write-Host "Found installer: $($installer.FullName)"
-          Copy-Item $installer.FullName "NSIS_INSTALLER.exe"
+          $target = "src-tauri\target\release"
+          $bin = "src-tauri\bin"
+          # Ensure sidecar is at expected path for zip.py
+          if (-not (Test-Path "$target\VRCT-sidecar.exe")) {
+            $sidecar = Get-ChildItem "$bin\VRCT-sidecar-*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($sidecar) {
+              Copy-Item $sidecar.FullName "$target\VRCT-sidecar.exe"
+              Write-Host "Copied sidecar from $($sidecar.FullName)"
+            }
+          }
+          # Ensure _internal is at expected path for zip.py
+          if (-not (Test-Path "$target\_internal")) {
+            if (Test-Path "$bin\_internal") {
+              Copy-Item -Recurse "$bin\_internal" "$target\_internal"
+              Write-Host "Copied _internal from $bin\_internal"
+            }
+          }
+          # Verify files exist
+          $vrct = Test-Path "$target\VRCT.exe"
+          $sc = Test-Path "$target\VRCT-sidecar.exe"
+          $int = Test-Path "$target\_internal"
+          Write-Host "VRCT.exe: $vrct | Sidecar: $sc | _internal: $int"
+          if (-not $vrct) { Write-Error "VRCT.exe not found!"; exit 1 }
+
+      # Use 7z for better compression
+      - name: Create portable archive
+        shell: pwsh
+        run: |
+          $target = "src-tauri\target\release"
+          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=7 -m0=LZMA2 VRCT.7z `
+            "$target\VRCT.exe" "$target\VRCT-sidecar.exe"
+          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=7 -m0=LZMA2 VRCT.7z `
+            "$target\_internal"
+          $size = (Get-Item VRCT.7z).Length / 1MB
+          Write-Host "Standard archive size: $([math]::Round($size, 1)) MB"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-standard
-          path: |
-            VRCT.zip
-            NSIS_INSTALLER.exe
+          path: VRCT.7z
           retention-days: 7
 
 # ─── Job 3: CUDA build (runs in parallel with Job 2) ─────────────────────────
@@ -152,17 +186,58 @@ jobs:
       - name: Update version
         run: npm run update-version
 
-      - name: Build CUDA
-        run: npm run build-cuda
+      # Build steps run individually so we can use --no-bundle.
+      # NSIS cannot handle CUDA _internal — far exceeds 2 GB mmap limit.
+      - name: Build Python backend (CUDA)
+        run: npm run build-python-cuda
 
-      - name: Create portable ZIP
-        run: python utils\zip.py --zip_name VRCT_cuda.zip
+      - name: Build frontend
+        run: npm run vite-build
+
+      - name: Build Tauri binary (skip bundling)
+        run: npx tauri build --no-bundle
+
+      - name: Assemble portable files
+        shell: pwsh
+        run: |
+          $target = "src-tauri\target\release"
+          $bin = "src-tauri\bin"
+          if (-not (Test-Path "$target\VRCT-sidecar.exe")) {
+            $sidecar = Get-ChildItem "$bin\VRCT-sidecar-*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($sidecar) {
+              Copy-Item $sidecar.FullName "$target\VRCT-sidecar.exe"
+              Write-Host "Copied sidecar from $($sidecar.FullName)"
+            }
+          }
+          if (-not (Test-Path "$target\_internal")) {
+            if (Test-Path "$bin\_internal") {
+              Copy-Item -Recurse "$bin\_internal" "$target\_internal"
+              Write-Host "Copied _internal from $bin\_internal"
+            }
+          }
+          $vrct = Test-Path "$target\VRCT.exe"
+          $sc = Test-Path "$target\VRCT-sidecar.exe"
+          $int = Test-Path "$target\_internal"
+          Write-Host "VRCT.exe: $vrct | Sidecar: $sc | _internal: $int"
+          if (-not $vrct) { Write-Error "VRCT.exe not found!"; exit 1 }
+
+      # Use 7z for CUDA — standard zip exceeds GitHub's 2GB upload limit
+      - name: Create CUDA archive (7z for compression)
+        shell: pwsh
+        run: |
+          $target = "src-tauri\target\release"
+          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=7 -m0=LZMA2 VRCT_cuda.7z `
+            "$target\VRCT.exe" "$target\VRCT-sidecar.exe"
+          & "C:\Program Files\7-Zip\7z.exe" a -t7z -mx=7 -m0=LZMA2 VRCT_cuda.7z `
+            "$target\_internal"
+          $size = (Get-Item VRCT_cuda.7z).Length / 1MB
+          Write-Host "CUDA archive size: $([math]::Round($size, 1)) MB"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-cuda
-          path: VRCT_cuda.zip
+          path: VRCT_cuda.7z
           retention-days: 7
 
 # ─── Job 4: create GitHub Release (tag push only) ────────────────────────────
@@ -188,10 +263,6 @@ jobs:
           name: build-cuda
           path: artifacts/cuda
 
-      - name: Rename NSIS installer with version
-        run: |
-          mv artifacts/standard/NSIS_INSTALLER.exe "artifacts/standard/VRCT_${{ env.VERSION }}_x64-setup.exe"
-
       - name: Create GitHub Release and upload assets
         uses: softprops/action-gh-release@v2
         with:
@@ -200,6 +271,5 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            artifacts/standard/VRCT_${{ env.VERSION }}_x64-setup.exe
-            artifacts/standard/VRCT.zip
-            artifacts/cuda/VRCT_cuda.zip
+            artifacts/standard/VRCT.7z
+            artifacts/cuda/VRCT_cuda.7z

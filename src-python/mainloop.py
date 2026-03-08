@@ -65,6 +65,8 @@ run_mapping = {
     "selected_groq_model":"/run/selected_groq_model",
     "selectable_openrouter_model_list":"/run/selectable_openrouter_model_list",
     "selected_openrouter_model":"/run/selected_openrouter_model",
+    "selectable_siliconflow_model_list":"/run/selectable_siliconflow_model_list",
+    "selected_siliconflow_model":"/run/selected_siliconflow_model",
     "selectable_lmstudio_model_list":"/run/selectable_lmstudio_model_list",
     "selected_lmstudio_model":"/run/selected_lmstudio_model",
     "selectable_ollama_model_list":"/run/selectable_ollama_model_list",
@@ -303,6 +305,13 @@ mapping = {
     "/get/data/openrouter_auth_key": {"status": True, "variable":controller.getOpenRouterAuthKey},
     "/set/data/openrouter_auth_key": {"status": True, "variable":controller.setOpenRouterAuthKey},
     "/delete/data/openrouter_auth_key": {"status": True, "variable":controller.delOpenRouterAuthKey},
+
+    "/get/data/selectable_siliconflow_model_list": {"status": True, "variable":controller.getSiliconFlowModelList},
+    "/get/data/selected_siliconflow_model": {"status": True, "variable":controller.getSiliconFlowModel},
+    "/set/data/selected_siliconflow_model": {"status": True, "variable":controller.setSiliconFlowModel},
+    "/get/data/siliconflow_auth_key": {"status": True, "variable":controller.getSiliconFlowAuthKey},
+    "/set/data/siliconflow_auth_key": {"status": True, "variable":controller.setSiliconFlowAuthKey},
+    "/delete/data/siliconflow_auth_key": {"status": True, "variable":controller.delSiliconFlowAuthKey},
 
     "/get/data/connected_lmstudio": {"status": True, "variable":controller.getTranslatorLMStudioConnection},
     "/run/lmstudio_connection": {"status": True, "variable":controller.checkTranslatorLMStudioConnection},
