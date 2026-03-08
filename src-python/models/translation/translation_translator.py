@@ -54,6 +54,12 @@ class Translator:
         self.plamo_client: Optional[PlamoClient] = None
         self.gemini_client: Optional[GeminiClient] = None
         self.openai_client: Optional[OpenAIClient] = None
+        self.custom_openai_client: Optional[OpenAIClient] = None
+        self.custom_openai_connected: bool = False
+        self.custom_openai_client_2: Optional[OpenAIClient] = None
+        self.custom_openai_connected_2: bool = False
+        self.custom_openai_client_3: Optional[OpenAIClient] = None
+        self.custom_openai_connected_3: bool = False
         self.groq_client: Optional[GroqClient] = None
         self.openrouter_client: Optional[OpenRouterClient] = None
         self.lmstudio_client: LMStudioClient[LMStudioClient] = None
@@ -149,6 +155,204 @@ class Translator:
     def updateGeminiClient(self) -> None:
         """Update the Gemini client (fetch available models)."""
         self.gemini_client.updateClient()
+
+    # ── Custom OpenAI Compatible API ──────────────────────────────
+    def authenticationCustomOpenAI(self, base_url: str, api_key: str, root_path: str = None) -> bool:
+        """Authenticate and connect to a custom OpenAI-compatible endpoint."""
+        self.custom_openai_client = OpenAIClient(base_url=base_url, root_path=root_path, prompt_filename="translation_custom_openai.yml")
+        if self.custom_openai_client.setAuthKey(api_key):
+            self.custom_openai_connected = True
+            return True
+        else:
+            self.custom_openai_client = None
+            self.custom_openai_connected = False
+            return False
+
+    def getCustomOpenAIConnected(self) -> bool:
+        return self.custom_openai_connected
+
+    def setCustomOpenAIModel(self, model: str) -> bool:
+        if self.custom_openai_client is None:
+            return False
+        # For custom endpoints, allow any model name without validation
+        self.custom_openai_client.model = model
+        return True
+
+    def updateCustomOpenAIClient(self) -> None:
+        if self.custom_openai_client is not None:
+            self.custom_openai_client.updateClient()
+
+    def setCustomOpenAIAsrCorrection(self, enabled: bool) -> None:
+        if self.custom_openai_client is not None:
+            self.custom_openai_client.enable_asr_correction = enabled
+
+    def getCustomOpenAIAsrCorrection(self) -> bool:
+        if self.custom_openai_client is not None:
+            return self.custom_openai_client.enable_asr_correction
+        return False
+
+    def testCustomOpenAITranslation(self, text: str, input_lang: str, output_lang: str) -> str | bool:
+        """Test translation using the Custom OpenAI client. Returns translated text or False on failure."""
+        if self.custom_openai_client is None:
+            return False
+        return self.custom_openai_client.translate(text, input_lang=input_lang, output_lang=output_lang)
+
+    def setCustomOpenAIMaxTokens(self, value: int) -> None:
+        if self.custom_openai_client is not None:
+            self.custom_openai_client.max_tokens = value
+
+    def getCustomOpenAIMaxTokens(self) -> int:
+        if self.custom_openai_client is not None:
+            return self.custom_openai_client.max_tokens
+        return 2048
+
+    def setCustomOpenAITemperature(self, value: float) -> None:
+        if self.custom_openai_client is not None:
+            self.custom_openai_client.temperature = value
+
+    def getCustomOpenAITemperature(self) -> float:
+        if self.custom_openai_client is not None:
+            return self.custom_openai_client.temperature
+        return 0.3
+
+    def setCustomOpenAICustomSystemPrompt(self, value: str) -> None:
+        if self.custom_openai_client is not None:
+            self.custom_openai_client.custom_system_prompt = value
+
+    def getCustomOpenAICustomSystemPrompt(self) -> str:
+        if self.custom_openai_client is not None:
+            return self.custom_openai_client.custom_system_prompt
+        return ""
+
+    # ── Custom OpenAI Compatible API 2 ──────────────────────────────
+    def authenticationCustomOpenAI2(self, base_url: str, api_key: str, root_path: str = None) -> bool:
+        self.custom_openai_client_2 = OpenAIClient(base_url=base_url, root_path=root_path, prompt_filename="translation_custom_openai.yml")
+        if self.custom_openai_client_2.setAuthKey(api_key):
+            self.custom_openai_connected_2 = True
+            return True
+        else:
+            self.custom_openai_client_2 = None
+            self.custom_openai_connected_2 = False
+            return False
+
+    def getCustomOpenAI2Connected(self) -> bool:
+        return self.custom_openai_connected_2
+
+    def setCustomOpenAI2Model(self, model: str) -> bool:
+        if self.custom_openai_client_2 is None:
+            return False
+        self.custom_openai_client_2.model = model
+        return True
+
+    def updateCustomOpenAI2Client(self) -> None:
+        if self.custom_openai_client_2 is not None:
+            self.custom_openai_client_2.updateClient()
+
+    def setCustomOpenAI2AsrCorrection(self, enabled: bool) -> None:
+        if self.custom_openai_client_2 is not None:
+            self.custom_openai_client_2.enable_asr_correction = enabled
+
+    def getCustomOpenAI2AsrCorrection(self) -> bool:
+        if self.custom_openai_client_2 is not None:
+            return self.custom_openai_client_2.enable_asr_correction
+        return False
+
+    def testCustomOpenAI2Translation(self, text: str, input_lang: str, output_lang: str) -> str | bool:
+        if self.custom_openai_client_2 is None:
+            return False
+        return self.custom_openai_client_2.translate(text, input_lang=input_lang, output_lang=output_lang)
+
+    def setCustomOpenAI2MaxTokens(self, value: int) -> None:
+        if self.custom_openai_client_2 is not None:
+            self.custom_openai_client_2.max_tokens = value
+
+    def getCustomOpenAI2MaxTokens(self) -> int:
+        if self.custom_openai_client_2 is not None:
+            return self.custom_openai_client_2.max_tokens
+        return 2048
+
+    def setCustomOpenAI2Temperature(self, value: float) -> None:
+        if self.custom_openai_client_2 is not None:
+            self.custom_openai_client_2.temperature = value
+
+    def getCustomOpenAI2Temperature(self) -> float:
+        if self.custom_openai_client_2 is not None:
+            return self.custom_openai_client_2.temperature
+        return 0.3
+
+    def setCustomOpenAI2CustomSystemPrompt(self, value: str) -> None:
+        if self.custom_openai_client_2 is not None:
+            self.custom_openai_client_2.custom_system_prompt = value
+
+    def getCustomOpenAI2CustomSystemPrompt(self) -> str:
+        if self.custom_openai_client_2 is not None:
+            return self.custom_openai_client_2.custom_system_prompt
+        return ""
+
+    # ── Custom OpenAI Compatible API 3 ──────────────────────────────
+    def authenticationCustomOpenAI3(self, base_url: str, api_key: str, root_path: str = None) -> bool:
+        self.custom_openai_client_3 = OpenAIClient(base_url=base_url, root_path=root_path, prompt_filename="translation_custom_openai.yml")
+        if self.custom_openai_client_3.setAuthKey(api_key):
+            self.custom_openai_connected_3 = True
+            return True
+        else:
+            self.custom_openai_client_3 = None
+            self.custom_openai_connected_3 = False
+            return False
+
+    def getCustomOpenAI3Connected(self) -> bool:
+        return self.custom_openai_connected_3
+
+    def setCustomOpenAI3Model(self, model: str) -> bool:
+        if self.custom_openai_client_3 is None:
+            return False
+        self.custom_openai_client_3.model = model
+        return True
+
+    def updateCustomOpenAI3Client(self) -> None:
+        if self.custom_openai_client_3 is not None:
+            self.custom_openai_client_3.updateClient()
+
+    def setCustomOpenAI3AsrCorrection(self, enabled: bool) -> None:
+        if self.custom_openai_client_3 is not None:
+            self.custom_openai_client_3.enable_asr_correction = enabled
+
+    def getCustomOpenAI3AsrCorrection(self) -> bool:
+        if self.custom_openai_client_3 is not None:
+            return self.custom_openai_client_3.enable_asr_correction
+        return False
+
+    def testCustomOpenAI3Translation(self, text: str, input_lang: str, output_lang: str) -> str | bool:
+        if self.custom_openai_client_3 is None:
+            return False
+        return self.custom_openai_client_3.translate(text, input_lang=input_lang, output_lang=output_lang)
+
+    def setCustomOpenAI3MaxTokens(self, value: int) -> None:
+        if self.custom_openai_client_3 is not None:
+            self.custom_openai_client_3.max_tokens = value
+
+    def getCustomOpenAI3MaxTokens(self) -> int:
+        if self.custom_openai_client_3 is not None:
+            return self.custom_openai_client_3.max_tokens
+        return 2048
+
+    def setCustomOpenAI3Temperature(self, value: float) -> None:
+        if self.custom_openai_client_3 is not None:
+            self.custom_openai_client_3.temperature = value
+
+    def getCustomOpenAI3Temperature(self) -> float:
+        if self.custom_openai_client_3 is not None:
+            return self.custom_openai_client_3.temperature
+        return 0.3
+
+    def setCustomOpenAI3CustomSystemPrompt(self, value: str) -> None:
+        if self.custom_openai_client_3 is not None:
+            self.custom_openai_client_3.custom_system_prompt = value
+
+    def getCustomOpenAI3CustomSystemPrompt(self) -> str:
+        if self.custom_openai_client_3 is not None:
+            return self.custom_openai_client_3.custom_system_prompt
+        return ""
 
     def authenticationOpenAIAuthKey(self, auth_key: str, base_url: str | None = None, root_path: str = None) -> bool:
         """Authenticate OpenAI (Chat Completions) API with the provided key.
@@ -497,6 +701,39 @@ class Translator:
                         if context_history:
                             self.openai_client.setContextHistory(context_history)
                         result = self.openai_client.translate(
+                            message,
+                            input_lang=source_language,
+                            output_lang=target_language,
+                        )
+                case "Custom_OpenAI_API":
+                    if self.custom_openai_client is None:
+                        result = False
+                    else:
+                        if context_history:
+                            self.custom_openai_client.setContextHistory(context_history)
+                        result = self.custom_openai_client.translate(
+                            message,
+                            input_lang=source_language,
+                            output_lang=target_language,
+                        )
+                case "Custom_OpenAI_API_2":
+                    if self.custom_openai_client_2 is None:
+                        result = False
+                    else:
+                        if context_history:
+                            self.custom_openai_client_2.setContextHistory(context_history)
+                        result = self.custom_openai_client_2.translate(
+                            message,
+                            input_lang=source_language,
+                            output_lang=target_language,
+                        )
+                case "Custom_OpenAI_API_3":
+                    if self.custom_openai_client_3 is None:
+                        result = False
+                    else:
+                        if context_history:
+                            self.custom_openai_client_3.setContextHistory(context_history)
+                        result = self.custom_openai_client_3.translate(
                             message,
                             input_lang=source_language,
                             output_lang=target_language,

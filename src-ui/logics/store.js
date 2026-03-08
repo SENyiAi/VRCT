@@ -169,6 +169,12 @@ export const { atomInstance: Atom_NotificationStatus, useHook: useStore_Notifica
 }, "NotificationStatus");
 export const { atomInstance: Atom_IsLMStudioConnected, useHook: useStore_IsLMStudioConnected } = createAtomWithHook(false, "IsLMStudioConnected");
 export const { atomInstance: Atom_IsOllamaConnected, useHook: useStore_IsOllamaConnected } = createAtomWithHook(false, "IsOllamaConnected");
+export const { atomInstance: Atom_IsCustomOpenAIConnected, useHook: useStore_IsCustomOpenAIConnected } = createAtomWithHook(false, "IsCustomOpenAIConnected");
+export const { atomInstance: Atom_CustomOpenAITestResult, useHook: useStore_CustomOpenAITestResult } = createAtomWithHook("", "CustomOpenAITestResult");
+export const { atomInstance: Atom_IsCustomOpenAI2Connected, useHook: useStore_IsCustomOpenAI2Connected } = createAtomWithHook(false, "IsCustomOpenAI2Connected");
+export const { atomInstance: Atom_CustomOpenAI2TestResult, useHook: useStore_CustomOpenAI2TestResult } = createAtomWithHook("", "CustomOpenAI2TestResult");
+export const { atomInstance: Atom_IsCustomOpenAI3Connected, useHook: useStore_IsCustomOpenAI3Connected } = createAtomWithHook(false, "IsCustomOpenAI3Connected");
+export const { atomInstance: Atom_CustomOpenAI3TestResult, useHook: useStore_CustomOpenAI3TestResult } = createAtomWithHook("", "CustomOpenAI3TestResult");
 
 // Main Page
 // Common

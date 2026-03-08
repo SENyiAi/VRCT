@@ -8,6 +8,7 @@ from os import path as os_path
 from datetime import datetime
 from time import sleep
 from queue import Queue
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from threading import Thread
 from requests import get as requests_get
 from typing import Callable, Optional, cast
@@ -259,6 +260,115 @@ class Model:
         self.ensure_initialized()
         self.translator.updateOpenAIClient()
 
+    # --- Custom OpenAI Compatible API ---
+    def authenticationTranslatorCustomOpenAI(self, base_url: str, api_key: str) -> bool:
+        result = self.translator.authenticationCustomOpenAI(base_url=base_url, api_key=api_key, root_path=config.PATH_LOCAL)
+        return result
+
+    def getTranslatorCustomOpenAIConnected(self) -> bool:
+        return self.translator.getCustomOpenAIConnected()
+
+    def setTranslatorCustomOpenAIModel(self, model: str) -> bool:
+        self.ensure_initialized()
+        return self.translator.setCustomOpenAIModel(model=model)
+
+    def updateTranslatorCustomOpenAIClient(self) -> None:
+        self.ensure_initialized()
+        self.translator.updateCustomOpenAIClient()
+
+    def setTranslatorCustomOpenAIAsrCorrection(self, enabled: bool) -> None:
+        self.translator.setCustomOpenAIAsrCorrection(enabled)
+
+    def getTranslatorCustomOpenAIAsrCorrection(self) -> bool:
+        return self.translator.getCustomOpenAIAsrCorrection()
+
+    def testTranslatorCustomOpenAITranslation(self, text: str, input_lang: str, output_lang: str) -> str | bool:
+        return self.translator.testCustomOpenAITranslation(text, input_lang, output_lang)
+
+    def setTranslatorCustomOpenAIMaxTokens(self, value: int) -> None:
+        self.translator.setCustomOpenAIMaxTokens(value)
+
+    def getTranslatorCustomOpenAIMaxTokens(self) -> int:
+        return self.translator.getCustomOpenAIMaxTokens()
+
+    def setTranslatorCustomOpenAITemperature(self, value: float) -> None:
+        self.translator.setCustomOpenAITemperature(value)
+
+    def getTranslatorCustomOpenAITemperature(self) -> float:
+        return self.translator.getCustomOpenAITemperature()
+
+    def setTranslatorCustomOpenAICustomSystemPrompt(self, value: str) -> None:
+        self.translator.setCustomOpenAICustomSystemPrompt(value)
+
+    def getTranslatorCustomOpenAICustomSystemPrompt(self) -> str:
+        return self.translator.getCustomOpenAICustomSystemPrompt()
+
+    # --- Custom OpenAI Compatible API 2 ---
+    def authenticationTranslatorCustomOpenAI2(self, base_url: str, api_key: str) -> bool:
+        return self.translator.authenticationCustomOpenAI2(base_url=base_url, api_key=api_key, root_path=config.PATH_LOCAL)
+
+    def getTranslatorCustomOpenAI2Connected(self) -> bool:
+        return self.translator.getCustomOpenAI2Connected()
+
+    def setTranslatorCustomOpenAI2Model(self, model: str) -> bool:
+        self.ensure_initialized()
+        return self.translator.setCustomOpenAI2Model(model=model)
+
+    def updateTranslatorCustomOpenAI2Client(self) -> None:
+        self.ensure_initialized()
+        self.translator.updateCustomOpenAI2Client()
+
+    def setTranslatorCustomOpenAI2AsrCorrection(self, enabled: bool) -> None:
+        self.translator.setCustomOpenAI2AsrCorrection(enabled)
+
+    def getTranslatorCustomOpenAI2AsrCorrection(self) -> bool:
+        return self.translator.getCustomOpenAI2AsrCorrection()
+
+    def testTranslatorCustomOpenAI2Translation(self, text: str, input_lang: str, output_lang: str) -> str | bool:
+        return self.translator.testCustomOpenAI2Translation(text, input_lang, output_lang)
+
+    def setTranslatorCustomOpenAI2MaxTokens(self, value: int) -> None:
+        self.translator.setCustomOpenAI2MaxTokens(value)
+
+    def setTranslatorCustomOpenAI2Temperature(self, value: float) -> None:
+        self.translator.setCustomOpenAI2Temperature(value)
+
+    def setTranslatorCustomOpenAI2CustomSystemPrompt(self, value: str) -> None:
+        self.translator.setCustomOpenAI2CustomSystemPrompt(value)
+
+    # --- Custom OpenAI Compatible API 3 ---
+    def authenticationTranslatorCustomOpenAI3(self, base_url: str, api_key: str) -> bool:
+        return self.translator.authenticationCustomOpenAI3(base_url=base_url, api_key=api_key, root_path=config.PATH_LOCAL)
+
+    def getTranslatorCustomOpenAI3Connected(self) -> bool:
+        return self.translator.getCustomOpenAI3Connected()
+
+    def setTranslatorCustomOpenAI3Model(self, model: str) -> bool:
+        self.ensure_initialized()
+        return self.translator.setCustomOpenAI3Model(model=model)
+
+    def updateTranslatorCustomOpenAI3Client(self) -> None:
+        self.ensure_initialized()
+        self.translator.updateCustomOpenAI3Client()
+
+    def setTranslatorCustomOpenAI3AsrCorrection(self, enabled: bool) -> None:
+        self.translator.setCustomOpenAI3AsrCorrection(enabled)
+
+    def getTranslatorCustomOpenAI3AsrCorrection(self) -> bool:
+        return self.translator.getCustomOpenAI3AsrCorrection()
+
+    def testTranslatorCustomOpenAI3Translation(self, text: str, input_lang: str, output_lang: str) -> str | bool:
+        return self.translator.testCustomOpenAI3Translation(text, input_lang, output_lang)
+
+    def setTranslatorCustomOpenAI3MaxTokens(self, value: int) -> None:
+        self.translator.setCustomOpenAI3MaxTokens(value)
+
+    def setTranslatorCustomOpenAI3Temperature(self, value: float) -> None:
+        self.translator.setCustomOpenAI3Temperature(value)
+
+    def setTranslatorCustomOpenAI3CustomSystemPrompt(self, value: str) -> None:
+        self.translator.setCustomOpenAI3CustomSystemPrompt(value)
+
     def authenticationTranslatorGroqAuthKey(self, auth_key: str) -> bool:
         result = self.translator.authenticationGroqAuthKey(auth_key, root_path=config.PATH_LOCAL)
         return result
@@ -432,19 +542,54 @@ class Model:
     def getTranslate(self, translator_name, source_language, target_language, target_country, message):
         self.ensure_initialized()
         success_flag = False
-        
+
         # Get context history for LLM-based translators
         history = self.getTranslationHistory()
-        
-        translation = self.translator.translate(
-                        translator_name=translator_name,
-                        weight_type=config.CTRANSLATE2_WEIGHT_TYPE,
-                        source_language=source_language,
-                        target_language=target_language,
-                        target_country=target_country,
-                        message=message,
-                        context_history=history
+
+        # Attempt translation with optional timeout + fallback
+        translation = None
+        if config.TRANSLATION_FALLBACK_ENABLED and config.TRANSLATION_FALLBACK_TIMEOUT > 0:
+            timeout = config.TRANSLATION_FALLBACK_TIMEOUT
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    self.translator.translate,
+                    translator_name=translator_name,
+                    weight_type=config.CTRANSLATE2_WEIGHT_TYPE,
+                    source_language=source_language,
+                    target_language=target_language,
+                    target_country=target_country,
+                    message=message,
+                    context_history=history,
                 )
+                try:
+                    translation = future.result(timeout=timeout)
+                except (FuturesTimeoutError, Exception):
+                    translation = None
+                    # Try fallback engine
+                    fallback_engine = config.TRANSLATION_FALLBACK_ENGINE
+                    if fallback_engine and fallback_engine != translator_name:
+                        try:
+                            translation = self.translator.translate(
+                                translator_name=fallback_engine,
+                                weight_type=config.CTRANSLATE2_WEIGHT_TYPE,
+                                source_language=source_language,
+                                target_language=target_language,
+                                target_country=target_country,
+                                message=message,
+                                context_history=history,
+                            )
+                        except Exception:
+                            translation = None
+        else:
+            translation = self.translator.translate(
+                            translator_name=translator_name,
+                            weight_type=config.CTRANSLATE2_WEIGHT_TYPE,
+                            source_language=source_language,
+                            target_language=target_language,
+                            target_country=target_country,
+                            message=message,
+                            context_history=history
+                    )
 
         # 翻訳失敗時のフェールセーフ処理
         if isinstance(translation, str):

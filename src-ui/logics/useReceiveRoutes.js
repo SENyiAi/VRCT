@@ -26,6 +26,18 @@ export const STATIC_ROUTE_META_LIST = [
     { endpoint: "/get/data/connected_ollama", ns: common, hook_name: "useLLMConnection", method_name: "setConnectionStatus_Ollama" },
     { endpoint: "/run/ollama_connection", ns: common, hook_name: "useLLMConnection", method_name: "setConnectionStatus_Ollama" },
 
+    { endpoint: "/get/data/connected_custom_openai", ns: common, hook_name: "useLLMConnection", method_name: "setConnectionStatus_CustomOpenAI" },
+    { endpoint: "/run/custom_openai_connection", ns: common, hook_name: "useLLMConnection", method_name: "setConnectionStatus_CustomOpenAI" },
+    { endpoint: "/run/test_custom_openai_translation", ns: common, hook_name: "useLLMConnection", method_name: "setTestTranslationResult_CustomOpenAI" },
+
+    { endpoint: "/get/data/connected_custom_openai_2", ns: common, hook_name: "useLLMConnection", method_name: "setConnectionStatus_CustomOpenAI2" },
+    { endpoint: "/run/custom_openai_2_connection", ns: common, hook_name: "useLLMConnection", method_name: "setConnectionStatus_CustomOpenAI2" },
+    { endpoint: "/run/test_custom_openai_2_translation", ns: common, hook_name: "useLLMConnection", method_name: "setTestTranslationResult_CustomOpenAI2" },
+
+    { endpoint: "/get/data/connected_custom_openai_3", ns: common, hook_name: "useLLMConnection", method_name: "setConnectionStatus_CustomOpenAI3" },
+    { endpoint: "/run/custom_openai_3_connection", ns: common, hook_name: "useLLMConnection", method_name: "setConnectionStatus_CustomOpenAI3" },
+    { endpoint: "/run/test_custom_openai_3_translation", ns: common, hook_name: "useLLMConnection", method_name: "setTestTranslationResult_CustomOpenAI3" },
+
     // Software Version
     { endpoint: "/get/data/version", ns: common, hook_name: "useSoftwareVersion", method_name: "updateSoftwareVersion" },
     // Latest Software Version Info

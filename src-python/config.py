@@ -635,6 +635,7 @@ class Config:
     SELECTABLE_PLAMO_MODEL_LIST = ManagedProperty('SELECTABLE_PLAMO_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
     SELECTABLE_GEMINI_MODEL_LIST = ManagedProperty('SELECTABLE_GEMINI_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
     SELECTABLE_OPENAI_MODEL_LIST = ManagedProperty('SELECTABLE_OPENAI_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
+    SELECTABLE_CUSTOM_OPENAI_MODEL_LIST = ManagedProperty('SELECTABLE_CUSTOM_OPENAI_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
     SELECTABLE_GROQ_MODEL_LIST = ManagedProperty('SELECTABLE_GROQ_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
     SELECTABLE_OPENROUTER_MODEL_LIST = ManagedProperty('SELECTABLE_OPENROUTER_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
     SELECTABLE_LMSTUDIO_MODEL_LIST = ManagedProperty('SELECTABLE_LMSTUDIO_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
@@ -691,11 +692,37 @@ class Config:
     # --- Auth and API settings ---
     AUTH_KEYS = ValidatedProperty('AUTH_KEYS',
         validator=lambda val, inst: (
-            {k: (v if isinstance(v, str) else inst.AUTH_KEYS.get(k)) for k, v in val.items()}
-            if isinstance(val, dict) and set(val.keys()) == set(inst.AUTH_KEYS.keys()) else None
+            {k: (val.get(k) if isinstance(val.get(k), str) else inst._AUTH_KEYS.get(k))
+             for k in inst._AUTH_KEYS.keys()}
+            if isinstance(val, dict) else None
         )
     )
     LMSTUDIO_URL = ManagedProperty('LMSTUDIO_URL', type_=str)
+    CUSTOM_OPENAI_URL = ManagedProperty('CUSTOM_OPENAI_URL', type_=str)
+    CUSTOM_OPENAI_MODEL = ManagedProperty('CUSTOM_OPENAI_MODEL', type_=str)
+    CUSTOM_OPENAI_ENABLE_ASR_CORRECTION = ManagedProperty('CUSTOM_OPENAI_ENABLE_ASR_CORRECTION', type_=bool)
+    CUSTOM_OPENAI_MAX_TOKENS = ManagedProperty('CUSTOM_OPENAI_MAX_TOKENS', type_=int)
+    CUSTOM_OPENAI_TEMPERATURE = ManagedProperty('CUSTOM_OPENAI_TEMPERATURE', type_=(int, float))
+    CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT = ManagedProperty('CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT', type_=str)
+
+    CUSTOM_OPENAI_URL_2 = ManagedProperty('CUSTOM_OPENAI_URL_2', type_=str)
+    CUSTOM_OPENAI_MODEL_2 = ManagedProperty('CUSTOM_OPENAI_MODEL_2', type_=str)
+    CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_2 = ManagedProperty('CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_2', type_=bool)
+    CUSTOM_OPENAI_MAX_TOKENS_2 = ManagedProperty('CUSTOM_OPENAI_MAX_TOKENS_2', type_=int)
+    CUSTOM_OPENAI_TEMPERATURE_2 = ManagedProperty('CUSTOM_OPENAI_TEMPERATURE_2', type_=(int, float))
+    CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_2 = ManagedProperty('CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_2', type_=str)
+
+    CUSTOM_OPENAI_URL_3 = ManagedProperty('CUSTOM_OPENAI_URL_3', type_=str)
+    CUSTOM_OPENAI_MODEL_3 = ManagedProperty('CUSTOM_OPENAI_MODEL_3', type_=str)
+    CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_3 = ManagedProperty('CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_3', type_=bool)
+    CUSTOM_OPENAI_MAX_TOKENS_3 = ManagedProperty('CUSTOM_OPENAI_MAX_TOKENS_3', type_=int)
+    CUSTOM_OPENAI_TEMPERATURE_3 = ManagedProperty('CUSTOM_OPENAI_TEMPERATURE_3', type_=(int, float))
+    CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_3 = ManagedProperty('CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_3', type_=str)
+
+    # Fallback settings
+    TRANSLATION_FALLBACK_ENABLED = ManagedProperty('TRANSLATION_FALLBACK_ENABLED', type_=bool)
+    TRANSLATION_FALLBACK_TIMEOUT = ManagedProperty('TRANSLATION_FALLBACK_TIMEOUT', type_=(int, float))
+    TRANSLATION_FALLBACK_ENGINE = ManagedProperty('TRANSLATION_FALLBACK_ENGINE', type_=str)
 
     # --- Transcription settings ---
     SELECTED_TRANSCRIPTION_COMPUTE_TYPE = ValidatedProperty('SELECTED_TRANSCRIPTION_COMPUTE_TYPE', _selected_transcription_compute_type_validator)
@@ -819,6 +846,7 @@ class Config:
         self._SELECTABLE_PLAMO_MODEL_LIST = []
         self._SELECTABLE_GEMINI_MODEL_LIST = []
         self._SELECTABLE_OPENAI_MODEL_LIST = []
+        self._SELECTABLE_CUSTOM_OPENAI_MODEL_LIST = []
         self._SELECTABLE_GROQ_MODEL_LIST = []
         self._SELECTABLE_OPENROUTER_MODEL_LIST = []
         self._SELECTABLE_LMSTUDIO_MODEL_LIST = []
@@ -945,6 +973,9 @@ class Config:
             "Plamo_API": None,
             "Gemini_API": None,
             "OpenAI_API": None,
+            "Custom_OpenAI_API": None,
+            "Custom_OpenAI_API_2": None,
+            "Custom_OpenAI_API_3": None,
             "Groq_API": None,
             "OpenRouter_API": None,
         }
@@ -958,6 +989,27 @@ class Config:
         self._SELECTED_GROQ_MODEL = None
         self._SELECTED_OPENROUTER_MODEL = None
         self._LMSTUDIO_URL = "http://127.0.0.1:1234/v1"
+        self._CUSTOM_OPENAI_URL = ""
+        self._CUSTOM_OPENAI_MODEL = ""
+        self._CUSTOM_OPENAI_ENABLE_ASR_CORRECTION = False
+        self._CUSTOM_OPENAI_MAX_TOKENS = 2048
+        self._CUSTOM_OPENAI_TEMPERATURE = 0.3
+        self._CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT = ""
+        self._CUSTOM_OPENAI_URL_2 = ""
+        self._CUSTOM_OPENAI_MODEL_2 = ""
+        self._CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_2 = False
+        self._CUSTOM_OPENAI_MAX_TOKENS_2 = 2048
+        self._CUSTOM_OPENAI_TEMPERATURE_2 = 0.3
+        self._CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_2 = ""
+        self._CUSTOM_OPENAI_URL_3 = ""
+        self._CUSTOM_OPENAI_MODEL_3 = ""
+        self._CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_3 = False
+        self._CUSTOM_OPENAI_MAX_TOKENS_3 = 2048
+        self._CUSTOM_OPENAI_TEMPERATURE_3 = 0.3
+        self._CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_3 = ""
+        self._TRANSLATION_FALLBACK_ENABLED = False
+        self._TRANSLATION_FALLBACK_TIMEOUT = 10.0
+        self._TRANSLATION_FALLBACK_ENGINE = "CTranslate2"
         self._SELECTED_LMSTUDIO_MODEL = None
         self._SELECTED_OLLAMA_MODEL = None
         self._SELECTED_TRANSLATION_COMPUTE_TYPE = "auto"

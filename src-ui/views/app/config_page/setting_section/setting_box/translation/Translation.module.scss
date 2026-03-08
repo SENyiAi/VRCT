@@ -1,0 +1,99 @@
+.test_translation_container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 2rem;
+    gap: 1rem;
+    border-bottom: solid 0.1rem var(--dark_800_color);
+}
+
+.test_translation_label {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--dark_200_color);
+}
+
+.test_translation_inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.test_translation_lang_input {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border-radius: 0.4rem;
+    border: solid 0.1rem var(--dark_700_color);
+    background-color: var(--dark_900_color);
+    color: var(--dark_200_color);
+    font-size: 1.2rem;
+    outline: none;
+    &:focus {
+        border-color: var(--primary_400_color);
+    }
+}
+
+.test_translation_arrow {
+    color: var(--dark_400_color);
+    font-size: 1.4rem;
+}
+
+.test_translation_row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.test_translation_text_input {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border-radius: 0.4rem;
+    border: solid 0.1rem var(--dark_700_color);
+    background-color: var(--dark_900_color);
+    color: var(--dark_200_color);
+    font-size: 1.3rem;
+    outline: none;
+    &:focus {
+        border-color: var(--primary_400_color);
+    }
+}
+
+.test_translation_button {
+    padding: 0.6rem 1.6rem;
+    border-radius: 0.4rem;
+    border: none;
+    background-color: var(--primary_400_color);
+    color: var(--dark_100_color);
+    font-size: 1.2rem;
+    cursor: pointer;
+    white-space: nowrap;
+    &:hover {
+        opacity: 0.85;
+    }
+}
+
+.test_translation_result {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.8rem 1rem;
+    border-radius: 0.4rem;
+    background-color: var(--dark_850_color);
+}
+
+.test_translation_result_label {
+    font-size: 1.2rem;
+    color: var(--dark_400_color);
+    white-space: nowrap;
+}
+
+.test_translation_result_text {
+    font-size: 1.3rem;
+    color: var(--dark_200_color);
+    word-break: break-word;
+}
+
+.test_translation_result_pending {
+    font-size: 1.3rem;
+    color: var(--dark_400_color);
+}

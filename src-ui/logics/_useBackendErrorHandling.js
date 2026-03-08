@@ -48,6 +48,10 @@ export const _useBackendErrorHandling = () => {
         updateOpenAIAuthKey,
         updateSelectedOpenAIModel,
 
+        updateCustomOpenAIURL,
+        updateCustomOpenAIAuthKey,
+        updateCustomOpenAIModel,
+
         updateGroqAuthKey,
         updateSelectedGroqModel,
 
@@ -72,6 +76,9 @@ export const _useBackendErrorHandling = () => {
     const {
         updateIsOllamaConnected,
         updateIsLMStudioConnected,
+        updateIsCustomOpenAIConnected,
+        updateIsCustomOpenAI2Connected,
+        updateIsCustomOpenAI3Connected,
     } = useLLMConnection();
 
     const errorHandling_Backend = ({error_code, message, data, endpoint, result}) => {
@@ -250,6 +257,18 @@ export const _useBackendErrorHandling = () => {
                 return;
             case "CONNECTION_LMSTUDIO_URL_INVALID":
                 updateLMStudioURL(data);
+                showNotification_Error(message, { category_id: error_code });
+                return;
+            case "CONNECTION_CUSTOM_OPENAI_FAILED":
+                updateIsCustomOpenAIConnected(data);
+                showNotification_Error(message, { category_id: error_code });
+                return;
+            case "CONNECTION_CUSTOM_OPENAI_2_FAILED":
+                updateIsCustomOpenAI2Connected(data);
+                showNotification_Error(message, { category_id: error_code });
+                return;
+            case "CONNECTION_CUSTOM_OPENAI_3_FAILED":
+                updateIsCustomOpenAI3Connected(data);
                 showNotification_Error(message, { category_id: error_code });
                 return;
 

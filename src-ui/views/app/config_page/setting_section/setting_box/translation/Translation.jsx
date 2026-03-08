@@ -18,6 +18,7 @@ import {
     RadioButtonContainer,
     DropdownMenuContainer,
     ConnectionCheckButtonContainer,
+    SwitchBoxContainer,
 
     useOnMouseLeaveDropdownMenu,
 } from "../_templates/Templates";
@@ -56,6 +57,38 @@ export const Translation = () => {
 
             <OpenAIAuthKey_Box />
             <OpenAIModelContainer />
+
+            <CustomOpenAIConnectionCheck_Box />
+            <CustomOpenAIURL_Box />
+            <CustomOpenAIAuthKey_Box />
+            <CustomOpenAIModel_Box />
+            <CustomOpenAIMaxTokens_Box />
+            <CustomOpenAITemperature_Box />
+            <CustomOpenAICustomSystemPrompt_Box />
+            <CustomOpenAIAsrCorrection_Box />
+            <CustomOpenAITestTranslation_Box />
+
+            <CustomOpenAI2ConnectionCheck_Box />
+            <CustomOpenAI2URL_Box />
+            <CustomOpenAI2AuthKey_Box />
+            <CustomOpenAI2Model_Box />
+            <CustomOpenAI2MaxTokens_Box />
+            <CustomOpenAI2Temperature_Box />
+            <CustomOpenAI2CustomSystemPrompt_Box />
+            <CustomOpenAI2AsrCorrection_Box />
+            <CustomOpenAI2TestTranslation_Box />
+
+            <CustomOpenAI3ConnectionCheck_Box />
+            <CustomOpenAI3URL_Box />
+            <CustomOpenAI3AuthKey_Box />
+            <CustomOpenAI3Model_Box />
+            <CustomOpenAI3MaxTokens_Box />
+            <CustomOpenAI3Temperature_Box />
+            <CustomOpenAI3CustomSystemPrompt_Box />
+            <CustomOpenAI3AsrCorrection_Box />
+            <CustomOpenAI3TestTranslation_Box />
+
+            <TranslationFallback_Box />
 
             <GroqAuthKey_Box />
             <GroqModelContainer />
@@ -454,6 +487,702 @@ const OpenAIModelContainer = () => {
             state={currentSelectedOpenAIModel.state}
             is_disabled={!currentOpenAIAuthKey.data}
         />
+    );
+};
+
+
+const CustomOpenAIConnectionCheck_Box = () => {
+    const { t } = useI18n();
+    const { currentIsCustomOpenAIConnected, checkConnection_CustomOpenAI } = useLLMConnection();
+
+    return (
+        <>
+            <ConnectionCheckButtonContainer
+                label={t("config_page.translation.custom_openai_connection_check.label")}
+                variable={currentIsCustomOpenAIConnected.data}
+                state={currentIsCustomOpenAIConnected.state}
+                checkFunction={checkConnection_CustomOpenAI}
+                remove_border_bottom={true}
+            />
+        </>
+    );
+};
+const CustomOpenAIURL_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAIURL, setCustomOpenAIURL } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAIURL.data,
+        state: currentCustomOpenAIURL.state,
+        setFunction: setCustomOpenAIURL,
+    });
+
+    return (
+        <>
+            <EntryWithSaveButtonContainer
+                label={t("config_page.translation.custom_openai_url.label")}
+                variable={variable}
+                saveFunction={saveFunction}
+                onChangeFunction={onChangeFunction}
+                state={currentCustomOpenAIURL.state}
+                remove_border_bottom={true}
+            />
+        </>
+    );
+};
+const CustomOpenAIAuthKey_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAIAuthKey, setCustomOpenAIAuthKey, deleteCustomOpenAIAuthKey } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAIAuthKey.data,
+        state: currentCustomOpenAIAuthKey.state,
+        setFunction: setCustomOpenAIAuthKey,
+        deleteFunction: deleteCustomOpenAIAuthKey,
+    });
+
+    return (
+        <>
+            <AuthKeyContainer
+                label={t("config_page.translation.custom_openai_auth_key.label")}
+                variable={variable}
+                state={currentCustomOpenAIAuthKey.state}
+                onChangeFunction={onChangeFunction}
+                saveFunction={saveFunction}
+                remove_border_bottom={true}
+            />
+        </>
+    );
+};
+const CustomOpenAIModel_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAIModel, setCustomOpenAIModel } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAIModel.data,
+        state: currentCustomOpenAIModel.state,
+        setFunction: setCustomOpenAIModel,
+    });
+
+    return (
+        <>
+            <EntryWithSaveButtonContainer
+                label={t("config_page.translation.custom_openai_model.label")}
+                variable={variable}
+                saveFunction={saveFunction}
+                onChangeFunction={onChangeFunction}
+                state={currentCustomOpenAIModel.state}
+                remove_border_bottom={true}
+            />
+        </>
+    );
+};
+
+const CustomOpenAIAsrCorrection_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAIAsrCorrection, toggleCustomOpenAIAsrCorrection } = useTranslation();
+
+    return (
+        <>
+            <SwitchBoxContainer
+                label={t("config_page.translation.custom_openai_asr_correction.label")}
+                desc={t("config_page.translation.custom_openai_asr_correction.desc")}
+                variable={currentCustomOpenAIAsrCorrection.data}
+                toggleFunction={toggleCustomOpenAIAsrCorrection}
+                remove_border_bottom={true}
+            />
+        </>
+    );
+};
+
+const CustomOpenAITestTranslation_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAITestResult, testTranslation_CustomOpenAI } = useLLMConnection();
+    const [testText, setTestText] = useState("");
+    const [inputLang, setInputLang] = useState("Chinese (Simplified)");
+    const [outputLang, setOutputLang] = useState("Japanese");
+
+    const handleTest = () => {
+        if (testText.trim()) {
+            testTranslation_CustomOpenAI(testText, inputLang, outputLang);
+        }
+    };
+
+    return (
+        <div className={styles.test_translation_container}>
+            <div className={styles.test_translation_label}>
+                {t("config_page.translation.custom_openai_test_translation.label")}
+            </div>
+            <div className={styles.test_translation_inputs}>
+                <input
+                    className={styles.test_translation_lang_input}
+                    type="text"
+                    value={inputLang}
+                    onChange={(e) => setInputLang(e.target.value)}
+                    placeholder={t("config_page.translation.custom_openai_test_translation.input_lang_placeholder")}
+                />
+                <span className={styles.test_translation_arrow}>→</span>
+                <input
+                    className={styles.test_translation_lang_input}
+                    type="text"
+                    value={outputLang}
+                    onChange={(e) => setOutputLang(e.target.value)}
+                    placeholder={t("config_page.translation.custom_openai_test_translation.output_lang_placeholder")}
+                />
+            </div>
+            <div className={styles.test_translation_row}>
+                <input
+                    className={styles.test_translation_text_input}
+                    type="text"
+                    value={testText}
+                    onChange={(e) => setTestText(e.target.value)}
+                    placeholder={t("config_page.translation.custom_openai_test_translation.text_placeholder")}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleTest(); }}
+                />
+                <button
+                    className={styles.test_translation_button}
+                    onClick={handleTest}
+                >
+                    {t("config_page.translation.custom_openai_test_translation.button")}
+                </button>
+            </div>
+            {currentCustomOpenAITestResult.data && (
+                <div className={styles.test_translation_result}>
+                    <span className={styles.test_translation_result_label}>
+                        {t("config_page.translation.custom_openai_test_translation.result")}
+                    </span>
+                    {currentCustomOpenAITestResult.state === "pending" ? (
+                        <span className={styles.test_translation_result_pending}>...</span>
+                    ) : (
+                        <span className={styles.test_translation_result_text}>{currentCustomOpenAITestResult.data}</span>
+                    )}
+                </div>
+            )}
+            {currentCustomOpenAITestResult.state === "pending" && !currentCustomOpenAITestResult.data && (
+                <div className={styles.test_translation_result}>
+                    <span className={styles.test_translation_result_pending}>...</span>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// --- Extra params for Custom OpenAI slot 1 ---
+const CustomOpenAIMaxTokens_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAIMaxTokens, setCustomOpenAIMaxTokens } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAIMaxTokens.data,
+        state: currentCustomOpenAIMaxTokens.state,
+        setFunction: setCustomOpenAIMaxTokens,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_max_tokens.label")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAIMaxTokens.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+
+const CustomOpenAITemperature_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAITemperature, setCustomOpenAITemperature } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAITemperature.data,
+        state: currentCustomOpenAITemperature.state,
+        setFunction: setCustomOpenAITemperature,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_temperature.label")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAITemperature.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+
+const CustomOpenAICustomSystemPrompt_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAICustomSystemPrompt, setCustomOpenAICustomSystemPrompt } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAICustomSystemPrompt.data,
+        state: currentCustomOpenAICustomSystemPrompt.state,
+        setFunction: setCustomOpenAICustomSystemPrompt,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_custom_system_prompt.label")}
+            desc={t("config_page.translation.custom_openai_custom_system_prompt.desc")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAICustomSystemPrompt.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+
+// --- Custom OpenAI 2 ---
+const CustomOpenAI2ConnectionCheck_Box = () => {
+    const { t } = useI18n();
+    const { currentIsCustomOpenAI2Connected, checkConnection_CustomOpenAI2 } = useLLMConnection();
+
+    return (
+        <ConnectionCheckButtonContainer
+            label={t("config_page.translation.custom_openai_2_connection_check.label")}
+            variable={currentIsCustomOpenAI2Connected.data}
+            state={currentIsCustomOpenAI2Connected.state}
+            checkFunction={checkConnection_CustomOpenAI2}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI2URL_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI2URL, setCustomOpenAI2URL } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAI2URL.data,
+        state: currentCustomOpenAI2URL.state,
+        setFunction: setCustomOpenAI2URL,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_2_url.label")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAI2URL.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI2AuthKey_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI2AuthKey, setCustomOpenAI2AuthKey, deleteCustomOpenAI2AuthKey } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAI2AuthKey.data,
+        state: currentCustomOpenAI2AuthKey.state,
+        setFunction: setCustomOpenAI2AuthKey,
+        deleteFunction: deleteCustomOpenAI2AuthKey,
+    });
+
+    return (
+        <AuthKeyContainer
+            label={t("config_page.translation.custom_openai_2_auth_key.label")}
+            variable={variable}
+            state={currentCustomOpenAI2AuthKey.state}
+            onChangeFunction={onChangeFunction}
+            saveFunction={saveFunction}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI2Model_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI2Model, setCustomOpenAI2Model } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAI2Model.data,
+        state: currentCustomOpenAI2Model.state,
+        setFunction: setCustomOpenAI2Model,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_2_model.label")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAI2Model.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI2MaxTokens_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI2MaxTokens, setCustomOpenAI2MaxTokens } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAI2MaxTokens.data,
+        state: currentCustomOpenAI2MaxTokens.state,
+        setFunction: setCustomOpenAI2MaxTokens,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_2_max_tokens.label")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAI2MaxTokens.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI2Temperature_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI2Temperature, setCustomOpenAI2Temperature } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAI2Temperature.data,
+        state: currentCustomOpenAI2Temperature.state,
+        setFunction: setCustomOpenAI2Temperature,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_2_temperature.label")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAI2Temperature.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI2CustomSystemPrompt_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI2CustomSystemPrompt, setCustomOpenAI2CustomSystemPrompt } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAI2CustomSystemPrompt.data,
+        state: currentCustomOpenAI2CustomSystemPrompt.state,
+        setFunction: setCustomOpenAI2CustomSystemPrompt,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_2_custom_system_prompt.label")}
+            desc={t("config_page.translation.custom_openai_custom_system_prompt.desc")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAI2CustomSystemPrompt.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI2AsrCorrection_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI2AsrCorrection, toggleCustomOpenAI2AsrCorrection } = useTranslation();
+
+    return (
+        <SwitchBoxContainer
+            label={t("config_page.translation.custom_openai_2_asr_correction.label")}
+            desc={t("config_page.translation.custom_openai_asr_correction.desc")}
+            variable={currentCustomOpenAI2AsrCorrection.data}
+            toggleFunction={toggleCustomOpenAI2AsrCorrection}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI2TestTranslation_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI2TestResult, testTranslation_CustomOpenAI2 } = useLLMConnection();
+    const [testText, setTestText] = useState("");
+    const [inputLang, setInputLang] = useState("Chinese (Simplified)");
+    const [outputLang, setOutputLang] = useState("Japanese");
+
+    const handleTest = () => {
+        if (testText.trim()) {
+            testTranslation_CustomOpenAI2(testText, inputLang, outputLang);
+        }
+    };
+
+    return (
+        <div className={styles.test_translation_container}>
+            <div className={styles.test_translation_label}>
+                {t("config_page.translation.custom_openai_2_test_translation.label")}
+            </div>
+            <div className={styles.test_translation_inputs}>
+                <input className={styles.test_translation_lang_input} type="text" value={inputLang} onChange={(e) => setInputLang(e.target.value)} placeholder={t("config_page.translation.custom_openai_test_translation.input_lang_placeholder")} />
+                <span className={styles.test_translation_arrow}>→</span>
+                <input className={styles.test_translation_lang_input} type="text" value={outputLang} onChange={(e) => setOutputLang(e.target.value)} placeholder={t("config_page.translation.custom_openai_test_translation.output_lang_placeholder")} />
+            </div>
+            <div className={styles.test_translation_row}>
+                <input className={styles.test_translation_text_input} type="text" value={testText} onChange={(e) => setTestText(e.target.value)} placeholder={t("config_page.translation.custom_openai_test_translation.text_placeholder")} onKeyDown={(e) => { if (e.key === "Enter") handleTest(); }} />
+                <button className={styles.test_translation_button} onClick={handleTest}>{t("config_page.translation.custom_openai_test_translation.button")}</button>
+            </div>
+            {currentCustomOpenAI2TestResult.data && (
+                <div className={styles.test_translation_result}>
+                    <span className={styles.test_translation_result_label}>{t("config_page.translation.custom_openai_test_translation.result")}</span>
+                    {currentCustomOpenAI2TestResult.state === "pending" ? (
+                        <span className={styles.test_translation_result_pending}>...</span>
+                    ) : (
+                        <span className={styles.test_translation_result_text}>{currentCustomOpenAI2TestResult.data}</span>
+                    )}
+                </div>
+            )}
+            {currentCustomOpenAI2TestResult.state === "pending" && !currentCustomOpenAI2TestResult.data && (
+                <div className={styles.test_translation_result}><span className={styles.test_translation_result_pending}>...</span></div>
+            )}
+        </div>
+    );
+};
+
+// --- Custom OpenAI 3 ---
+const CustomOpenAI3ConnectionCheck_Box = () => {
+    const { t } = useI18n();
+    const { currentIsCustomOpenAI3Connected, checkConnection_CustomOpenAI3 } = useLLMConnection();
+
+    return (
+        <ConnectionCheckButtonContainer
+            label={t("config_page.translation.custom_openai_3_connection_check.label")}
+            variable={currentIsCustomOpenAI3Connected.data}
+            state={currentIsCustomOpenAI3Connected.state}
+            checkFunction={checkConnection_CustomOpenAI3}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI3URL_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI3URL, setCustomOpenAI3URL } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAI3URL.data,
+        state: currentCustomOpenAI3URL.state,
+        setFunction: setCustomOpenAI3URL,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_3_url.label")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAI3URL.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI3AuthKey_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI3AuthKey, setCustomOpenAI3AuthKey, deleteCustomOpenAI3AuthKey } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAI3AuthKey.data,
+        state: currentCustomOpenAI3AuthKey.state,
+        setFunction: setCustomOpenAI3AuthKey,
+        deleteFunction: deleteCustomOpenAI3AuthKey,
+    });
+
+    return (
+        <AuthKeyContainer
+            label={t("config_page.translation.custom_openai_3_auth_key.label")}
+            variable={variable}
+            state={currentCustomOpenAI3AuthKey.state}
+            onChangeFunction={onChangeFunction}
+            saveFunction={saveFunction}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI3Model_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI3Model, setCustomOpenAI3Model } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAI3Model.data,
+        state: currentCustomOpenAI3Model.state,
+        setFunction: setCustomOpenAI3Model,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_3_model.label")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAI3Model.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI3MaxTokens_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI3MaxTokens, setCustomOpenAI3MaxTokens } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAI3MaxTokens.data,
+        state: currentCustomOpenAI3MaxTokens.state,
+        setFunction: setCustomOpenAI3MaxTokens,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_3_max_tokens.label")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAI3MaxTokens.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI3Temperature_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI3Temperature, setCustomOpenAI3Temperature } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAI3Temperature.data,
+        state: currentCustomOpenAI3Temperature.state,
+        setFunction: setCustomOpenAI3Temperature,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_3_temperature.label")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAI3Temperature.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI3CustomSystemPrompt_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI3CustomSystemPrompt, setCustomOpenAI3CustomSystemPrompt } = useTranslation();
+
+    const { variable, onChangeFunction, saveFunction } = useSaveButtonLogic({
+        variable: currentCustomOpenAI3CustomSystemPrompt.data,
+        state: currentCustomOpenAI3CustomSystemPrompt.state,
+        setFunction: setCustomOpenAI3CustomSystemPrompt,
+    });
+
+    return (
+        <EntryWithSaveButtonContainer
+            label={t("config_page.translation.custom_openai_3_custom_system_prompt.label")}
+            desc={t("config_page.translation.custom_openai_custom_system_prompt.desc")}
+            variable={variable}
+            saveFunction={saveFunction}
+            onChangeFunction={onChangeFunction}
+            state={currentCustomOpenAI3CustomSystemPrompt.state}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI3AsrCorrection_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI3AsrCorrection, toggleCustomOpenAI3AsrCorrection } = useTranslation();
+
+    return (
+        <SwitchBoxContainer
+            label={t("config_page.translation.custom_openai_3_asr_correction.label")}
+            desc={t("config_page.translation.custom_openai_asr_correction.desc")}
+            variable={currentCustomOpenAI3AsrCorrection.data}
+            toggleFunction={toggleCustomOpenAI3AsrCorrection}
+            remove_border_bottom={true}
+        />
+    );
+};
+const CustomOpenAI3TestTranslation_Box = () => {
+    const { t } = useI18n();
+    const { currentCustomOpenAI3TestResult, testTranslation_CustomOpenAI3 } = useLLMConnection();
+    const [testText, setTestText] = useState("");
+    const [inputLang, setInputLang] = useState("Chinese (Simplified)");
+    const [outputLang, setOutputLang] = useState("Japanese");
+
+    const handleTest = () => {
+        if (testText.trim()) {
+            testTranslation_CustomOpenAI3(testText, inputLang, outputLang);
+        }
+    };
+
+    return (
+        <div className={styles.test_translation_container}>
+            <div className={styles.test_translation_label}>
+                {t("config_page.translation.custom_openai_3_test_translation.label")}
+            </div>
+            <div className={styles.test_translation_inputs}>
+                <input className={styles.test_translation_lang_input} type="text" value={inputLang} onChange={(e) => setInputLang(e.target.value)} placeholder={t("config_page.translation.custom_openai_test_translation.input_lang_placeholder")} />
+                <span className={styles.test_translation_arrow}>→</span>
+                <input className={styles.test_translation_lang_input} type="text" value={outputLang} onChange={(e) => setOutputLang(e.target.value)} placeholder={t("config_page.translation.custom_openai_test_translation.output_lang_placeholder")} />
+            </div>
+            <div className={styles.test_translation_row}>
+                <input className={styles.test_translation_text_input} type="text" value={testText} onChange={(e) => setTestText(e.target.value)} placeholder={t("config_page.translation.custom_openai_test_translation.text_placeholder")} onKeyDown={(e) => { if (e.key === "Enter") handleTest(); }} />
+                <button className={styles.test_translation_button} onClick={handleTest}>{t("config_page.translation.custom_openai_test_translation.button")}</button>
+            </div>
+            {currentCustomOpenAI3TestResult.data && (
+                <div className={styles.test_translation_result}>
+                    <span className={styles.test_translation_result_label}>{t("config_page.translation.custom_openai_test_translation.result")}</span>
+                    {currentCustomOpenAI3TestResult.state === "pending" ? (
+                        <span className={styles.test_translation_result_pending}>...</span>
+                    ) : (
+                        <span className={styles.test_translation_result_text}>{currentCustomOpenAI3TestResult.data}</span>
+                    )}
+                </div>
+            )}
+            {currentCustomOpenAI3TestResult.state === "pending" && !currentCustomOpenAI3TestResult.data && (
+                <div className={styles.test_translation_result}><span className={styles.test_translation_result_pending}>...</span></div>
+            )}
+        </div>
+    );
+};
+
+// --- Translation Fallback ---
+const TranslationFallback_Box = () => {
+    const { t } = useI18n();
+    const {
+        currentTranslationFallbackEnabled, toggleTranslationFallbackEnabled,
+        currentTranslationFallbackTimeout, setTranslationFallbackTimeout,
+        currentTranslationFallbackEngine, setTranslationFallbackEngine,
+    } = useTranslation();
+
+    const { variable: timeoutVar, onChangeFunction: onChangeTimeout, saveFunction: saveTimeout } = useSaveButtonLogic({
+        variable: currentTranslationFallbackTimeout.data,
+        state: currentTranslationFallbackTimeout.state,
+        setFunction: setTranslationFallbackTimeout,
+    });
+
+    const { variable: engineVar, onChangeFunction: onChangeEngine, saveFunction: saveEngine } = useSaveButtonLogic({
+        variable: currentTranslationFallbackEngine.data,
+        state: currentTranslationFallbackEngine.state,
+        setFunction: setTranslationFallbackEngine,
+    });
+
+    return (
+        <>
+            <SwitchBoxContainer
+                label={t("config_page.translation.translation_fallback_enabled.label")}
+                desc={t("config_page.translation.translation_fallback_enabled.desc")}
+                variable={currentTranslationFallbackEnabled.data}
+                toggleFunction={toggleTranslationFallbackEnabled}
+                remove_border_bottom={true}
+            />
+            <EntryWithSaveButtonContainer
+                label={t("config_page.translation.translation_fallback_timeout.label")}
+                variable={timeoutVar}
+                saveFunction={saveTimeout}
+                onChangeFunction={onChangeTimeout}
+                state={currentTranslationFallbackTimeout.state}
+                remove_border_bottom={true}
+            />
+            <EntryWithSaveButtonContainer
+                label={t("config_page.translation.translation_fallback_engine.label")}
+                variable={engineVar}
+                saveFunction={saveEngine}
+                onChangeFunction={onChangeEngine}
+                state={currentTranslationFallbackEngine.state}
+            />
+        </>
     );
 };
 

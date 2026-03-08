@@ -177,6 +177,78 @@ config_page:
         select_openai_model:
             label: "OpenAI モデルを選択"
 
+        custom_openai_connection_check:
+            label: "カスタム OpenAI 接続チェック"
+        custom_openai_url:
+            label: "カスタム OpenAI API URL"
+        custom_openai_auth_key:
+            label: "カスタム OpenAI API キー"
+        custom_openai_model:
+            label: "カスタム OpenAI モデル名"
+        custom_openai_max_tokens:
+            label: "最大トークン数"
+        custom_openai_temperature:
+            label: "Temperature（創造性）"
+        custom_openai_custom_system_prompt:
+            label: "カスタムシステムプロンプト"
+            desc: "空の場合はデフォルトの翻訳プロンプトを使用。変数: {input_lang}、{output_lang}"
+        custom_openai_asr_correction:
+            label: "中国語 ASR 誤り訂正"
+            desc: "翻訳前に中国語音声認識の誤り（同音異字）を自動修正します"
+        custom_openai_test_translation:
+            label: "翻訳テスト"
+            text_placeholder: "テストするテキストを入力..."
+            input_lang_placeholder: "ソース言語"
+            output_lang_placeholder: "ターゲット言語"
+            button: "テスト"
+            result: "結果:"
+
+        custom_openai_2_connection_check:
+            label: "カスタム OpenAI 2 接続チェック"
+        custom_openai_2_url:
+            label: "カスタム OpenAI 2 API URL"
+        custom_openai_2_auth_key:
+            label: "カスタム OpenAI 2 API キー"
+        custom_openai_2_model:
+            label: "カスタム OpenAI 2 モデル名"
+        custom_openai_2_max_tokens:
+            label: "最大トークン数 (API 2)"
+        custom_openai_2_temperature:
+            label: "Temperature (API 2)"
+        custom_openai_2_custom_system_prompt:
+            label: "カスタムシステムプロンプト (API 2)"
+        custom_openai_2_asr_correction:
+            label: "中国語 ASR 誤り訂正 (API 2)"
+        custom_openai_2_test_translation:
+            label: "翻訳テスト (API 2)"
+
+        custom_openai_3_connection_check:
+            label: "カスタム OpenAI 3 接続チェック"
+        custom_openai_3_url:
+            label: "カスタム OpenAI 3 API URL"
+        custom_openai_3_auth_key:
+            label: "カスタム OpenAI 3 API キー"
+        custom_openai_3_model:
+            label: "カスタム OpenAI 3 モデル名"
+        custom_openai_3_max_tokens:
+            label: "最大トークン数 (API 3)"
+        custom_openai_3_temperature:
+            label: "Temperature (API 3)"
+        custom_openai_3_custom_system_prompt:
+            label: "カスタムシステムプロンプト (API 3)"
+        custom_openai_3_asr_correction:
+            label: "中国語 ASR 誤り訂正 (API 3)"
+        custom_openai_3_test_translation:
+            label: "翻訳テスト (API 3)"
+
+        translation_fallback_enabled:
+            label: "翻訳フォールバック"
+            desc: "翻訳がタイムアウトまたは失敗した場合にバックアップ翻訳エンジンに自動切換え"
+        translation_fallback_timeout:
+            label: "フォールバックタイムアウト（秒）"
+        translation_fallback_engine:
+            label: "バックアップ翻訳エンジン"
+
         groq_auth_key:
             label: "Groq 認証キー"
         select_groq_model:

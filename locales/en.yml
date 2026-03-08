@@ -177,6 +177,78 @@ config_page:
         select_openai_model:
             label: "Select OpenAI Model"
 
+        custom_openai_connection_check:
+            label: "Check Custom OpenAI Connection"
+        custom_openai_url:
+            label: "Custom OpenAI API URL"
+        custom_openai_auth_key:
+            label: "Custom OpenAI API Key"
+        custom_openai_model:
+            label: "Custom OpenAI Model Name"
+        custom_openai_max_tokens:
+            label: "Max Tokens"
+        custom_openai_temperature:
+            label: "Temperature"
+        custom_openai_custom_system_prompt:
+            label: "Custom System Prompt"
+            desc: "Leave empty to use the default translation prompt. Variables: {input_lang}, {output_lang}"
+        custom_openai_asr_correction:
+            label: "Chinese ASR Error Correction"
+            desc: "Automatically correct Chinese speech recognition errors (homophones) before translation"
+        custom_openai_test_translation:
+            label: "Test Translation"
+            text_placeholder: "Enter text to test..."
+            input_lang_placeholder: "Source language"
+            output_lang_placeholder: "Target language"
+            button: "Test"
+            result: "Result:"
+
+        custom_openai_2_connection_check:
+            label: "Check Custom OpenAI 2 Connection"
+        custom_openai_2_url:
+            label: "Custom OpenAI 2 API URL"
+        custom_openai_2_auth_key:
+            label: "Custom OpenAI 2 API Key"
+        custom_openai_2_model:
+            label: "Custom OpenAI 2 Model Name"
+        custom_openai_2_max_tokens:
+            label: "Max Tokens (API 2)"
+        custom_openai_2_temperature:
+            label: "Temperature (API 2)"
+        custom_openai_2_custom_system_prompt:
+            label: "Custom System Prompt (API 2)"
+        custom_openai_2_asr_correction:
+            label: "Chinese ASR Error Correction (API 2)"
+        custom_openai_2_test_translation:
+            label: "Test Translation (API 2)"
+
+        custom_openai_3_connection_check:
+            label: "Check Custom OpenAI 3 Connection"
+        custom_openai_3_url:
+            label: "Custom OpenAI 3 API URL"
+        custom_openai_3_auth_key:
+            label: "Custom OpenAI 3 API Key"
+        custom_openai_3_model:
+            label: "Custom OpenAI 3 Model Name"
+        custom_openai_3_max_tokens:
+            label: "Max Tokens (API 3)"
+        custom_openai_3_temperature:
+            label: "Temperature (API 3)"
+        custom_openai_3_custom_system_prompt:
+            label: "Custom System Prompt (API 3)"
+        custom_openai_3_asr_correction:
+            label: "Chinese ASR Error Correction (API 3)"
+        custom_openai_3_test_translation:
+            label: "Test Translation (API 3)"
+
+        translation_fallback_enabled:
+            label: "Translation Fallback"
+            desc: "Automatically switch to a backup translation engine when translation times out or fails"
+        translation_fallback_timeout:
+            label: "Fallback Timeout (seconds)"
+        translation_fallback_engine:
+            label: "Fallback Translation Engine"
+
         groq_auth_key:
             label: "Groq Auth Key"
         select_groq_model:

@@ -177,6 +177,78 @@ config_page:
         select_openai_model:
             label:
 
+        custom_openai_connection_check:
+            label: "커스텀 OpenAI 연결 확인"
+        custom_openai_url:
+            label: "커스텀 OpenAI API URL"
+        custom_openai_auth_key:
+            label: "커스텀 OpenAI API 키"
+        custom_openai_model:
+            label: "커스텀 OpenAI 모델 이름"
+        custom_openai_max_tokens:
+            label: "최대 토큰 수"
+        custom_openai_temperature:
+            label: "Temperature (창의성)"
+        custom_openai_custom_system_prompt:
+            label: "커스텀 시스템 프롬프트"
+            desc: "비어 있으면 기본 번역 프롬프트를 사용합니다. 변수: {input_lang}, {output_lang}"
+        custom_openai_asr_correction:
+            label: "중국어 ASR 오류 교정"
+            desc: "번역 전에 중국어 음성 인식 오류(동음이의어)를 자동으로 수정합니다"
+        custom_openai_test_translation:
+            label: "번역 테스트"
+            text_placeholder: "테스트할 텍스트를 입력..."
+            input_lang_placeholder: "소스 언어"
+            output_lang_placeholder: "대상 언어"
+            button: "테스트"
+            result: "결과:"
+
+        custom_openai_2_connection_check:
+            label: "커스텀 OpenAI 2 연결 확인"
+        custom_openai_2_url:
+            label: "커스텀 OpenAI 2 API URL"
+        custom_openai_2_auth_key:
+            label: "커스텀 OpenAI 2 API 키"
+        custom_openai_2_model:
+            label: "커스텀 OpenAI 2 모델 이름"
+        custom_openai_2_max_tokens:
+            label: "최대 토큰 수 (API 2)"
+        custom_openai_2_temperature:
+            label: "Temperature (API 2)"
+        custom_openai_2_custom_system_prompt:
+            label: "커스텀 시스템 프롬프트 (API 2)"
+        custom_openai_2_asr_correction:
+            label: "중국어 ASR 오류 교정 (API 2)"
+        custom_openai_2_test_translation:
+            label: "번역 테스트 (API 2)"
+
+        custom_openai_3_connection_check:
+            label: "커스텀 OpenAI 3 연결 확인"
+        custom_openai_3_url:
+            label: "커스텀 OpenAI 3 API URL"
+        custom_openai_3_auth_key:
+            label: "커스텀 OpenAI 3 API 키"
+        custom_openai_3_model:
+            label: "커스텀 OpenAI 3 모델 이름"
+        custom_openai_3_max_tokens:
+            label: "최대 토큰 수 (API 3)"
+        custom_openai_3_temperature:
+            label: "Temperature (API 3)"
+        custom_openai_3_custom_system_prompt:
+            label: "커스텀 시스템 프롬프트 (API 3)"
+        custom_openai_3_asr_correction:
+            label: "중국어 ASR 오류 교정 (API 3)"
+        custom_openai_3_test_translation:
+            label: "번역 테스트 (API 3)"
+
+        translation_fallback_enabled:
+            label: "번역 폴백"
+            desc: "번역 시간 초과 또는 실패 시 백업 번역 엔진으로 자동 전환"
+        translation_fallback_timeout:
+            label: "폴백 타임아웃 (초)"
+        translation_fallback_engine:
+            label: "백업 번역 엔진"
+
         groq_auth_key:
             label:
         select_groq_model:

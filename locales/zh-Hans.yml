@@ -177,6 +177,78 @@ config_page:
         select_openai_model:
             label:
 
+        custom_openai_connection_check:
+            label: "自定义 OpenAI 连接测试"
+        custom_openai_url:
+            label: "自定义 OpenAI API URL"
+        custom_openai_auth_key:
+            label: "自定义 OpenAI API 密钥"
+        custom_openai_model:
+            label: "自定义 OpenAI 模型名称"
+        custom_openai_max_tokens:
+            label: "最大Token数"
+        custom_openai_temperature:
+            label: "Temperature（创造性）"
+        custom_openai_custom_system_prompt:
+            label: "自定义系统提示词"
+            desc: "留空则使用默认翻译提示词。可用变量：{input_lang}、{output_lang}"
+        custom_openai_asr_correction:
+            label: "中文语音识别纠错"
+            desc: "翻译前自动纠正中文语音识别中的同音错别字"
+        custom_openai_test_translation:
+            label: "翻译测试"
+            text_placeholder: "输入要测试的文本..."
+            input_lang_placeholder: "源语言"
+            output_lang_placeholder: "目标语言"
+            button: "测试"
+            result: "结果:"
+
+        custom_openai_2_connection_check:
+            label: "自定义 OpenAI 2 连接测试"
+        custom_openai_2_url:
+            label: "自定义 OpenAI 2 API URL"
+        custom_openai_2_auth_key:
+            label: "自定义 OpenAI 2 API 密钥"
+        custom_openai_2_model:
+            label: "自定义 OpenAI 2 模型名称"
+        custom_openai_2_max_tokens:
+            label: "最大Token数 (API 2)"
+        custom_openai_2_temperature:
+            label: "Temperature (API 2)"
+        custom_openai_2_custom_system_prompt:
+            label: "自定义系统提示词 (API 2)"
+        custom_openai_2_asr_correction:
+            label: "中文语音识别纠错 (API 2)"
+        custom_openai_2_test_translation:
+            label: "翻译测试 (API 2)"
+
+        custom_openai_3_connection_check:
+            label: "自定义 OpenAI 3 连接测试"
+        custom_openai_3_url:
+            label: "自定义 OpenAI 3 API URL"
+        custom_openai_3_auth_key:
+            label: "自定义 OpenAI 3 API 密钥"
+        custom_openai_3_model:
+            label: "自定义 OpenAI 3 模型名称"
+        custom_openai_3_max_tokens:
+            label: "最大Token数 (API 3)"
+        custom_openai_3_temperature:
+            label: "Temperature (API 3)"
+        custom_openai_3_custom_system_prompt:
+            label: "自定义系统提示词 (API 3)"
+        custom_openai_3_asr_correction:
+            label: "中文语音识别纠错 (API 3)"
+        custom_openai_3_test_translation:
+            label: "翻译测试 (API 3)"
+
+        translation_fallback_enabled:
+            label: "翻译失败自动回退"
+            desc: "当翻译超时或失败时，自动切换到备用翻译引擎"
+        translation_fallback_timeout:
+            label: "回退超时时间（秒）"
+        translation_fallback_engine:
+            label: "备用翻译引擎"
+
         groq_auth_key:
             label:
         select_groq_model:

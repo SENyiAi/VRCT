@@ -1885,8 +1885,537 @@ class Controller:
             )
         return response
 
+    # --- Custom OpenAI Compatible API ---
     @staticmethod
-    def getGroqAuthKey(*args, **kwargs) -> dict:
+    def getCustomOpenAIURL(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_URL}
+
+    def setCustomOpenAIURL(self, data, *args, **kwargs) -> dict:
+        printLog("Set Custom OpenAI URL", data)
+        try:
+            data = str(data)
+            config.CUSTOM_OPENAI_URL = data
+            response = {"status":200, "result":config.CUSTOM_OPENAI_URL}
+        except Exception as e:
+            errorLogging()
+            response = VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_URL)
+        return response
+
+    @staticmethod
+    def getCustomOpenAIAuthKey(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.AUTH_KEYS["Custom_OpenAI_API"]}
+
+    def setCustomOpenAIAuthKey(self, data, *args, **kwargs) -> dict:
+        printLog("Set Custom OpenAI Auth Key", data)
+        try:
+            data = str(data)
+            auth_keys = config.AUTH_KEYS
+            auth_keys["Custom_OpenAI_API"] = data
+            config.AUTH_KEYS = auth_keys
+            response = {"status":200, "result":config.AUTH_KEYS["Custom_OpenAI_API"]}
+        except Exception as e:
+            errorLogging()
+            response = VRCTError.create_exception_error_response(e, data=None)
+        return response
+
+    def delCustomOpenAIAuthKey(self, *args, **kwargs) -> dict:
+        translator_name = "Custom_OpenAI_API"
+        auth_keys = config.AUTH_KEYS
+        auth_keys[translator_name] = None
+        config.AUTH_KEYS = auth_keys
+        config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = False
+        self.run(200, self.run_mapping["custom_openai_connection"], False)
+        self.updateTranslationEngineAndEngineList()
+        return {"status":200, "result":config.AUTH_KEYS[translator_name]}
+
+    @staticmethod
+    def getCustomOpenAIModel(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_MODEL}
+
+    def setCustomOpenAIModel(self, data, *args, **kwargs) -> dict:
+        printLog("Set Custom OpenAI Model", data)
+        try:
+            data = str(data)
+            config.CUSTOM_OPENAI_MODEL = data
+            response = {"status":200, "result":config.CUSTOM_OPENAI_MODEL}
+        except Exception as e:
+            errorLogging()
+            response = VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_MODEL)
+        return response
+
+    def getCustomOpenAIConnection(self, *args, **kwargs) -> dict:
+        return {"status":200, "result":model.getTranslatorCustomOpenAIConnected()}
+
+    def checkCustomOpenAIConnection(self, *args, **kwargs) -> dict:
+        printLog("Check Custom OpenAI Connection")
+        translator_name = "Custom_OpenAI_API"
+        try:
+            base_url = config.CUSTOM_OPENAI_URL
+            api_key = config.AUTH_KEYS.get(translator_name)
+            model_name = config.CUSTOM_OPENAI_MODEL
+
+            if not base_url or not api_key:
+                raise Exception("Custom OpenAI URL or API Key is not set")
+
+            result = model.authenticationTranslatorCustomOpenAI(base_url=base_url, api_key=api_key)
+            if result is True:
+                config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = True
+                if model_name:
+                    model.setTranslatorCustomOpenAIModel(model=model_name)
+                    model.updateTranslatorCustomOpenAIClient()
+                model.setTranslatorCustomOpenAIAsrCorrection(config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION)
+                model.setTranslatorCustomOpenAIMaxTokens(config.CUSTOM_OPENAI_MAX_TOKENS)
+                model.setTranslatorCustomOpenAITemperature(config.CUSTOM_OPENAI_TEMPERATURE)
+                model.setTranslatorCustomOpenAICustomSystemPrompt(config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT)
+                self.updateTranslationEngineAndEngineList()
+                response = {"status":200, "result":True}
+            else:
+                config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = False
+                self.updateTranslationEngineAndEngineList()
+                response = VRCTError.create_error_response(
+                    ErrorCode.CONNECTION_CUSTOM_OPENAI_FAILED,
+                    data=False
+                )
+        except Exception as e:
+            errorLogging()
+            config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = False
+            self.updateTranslationEngineAndEngineList()
+            response = VRCTError.create_exception_error_response(
+                e,
+                data=False
+            )
+        return response
+
+    @staticmethod
+    def getCustomOpenAIAsrCorrection(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION}
+
+    def setEnableCustomOpenAIAsrCorrection(self, *args, **kwargs) -> dict:
+        config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION = True
+        model.setTranslatorCustomOpenAIAsrCorrection(True)
+        return {"status":200, "result":config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION}
+
+    def setDisableCustomOpenAIAsrCorrection(self, *args, **kwargs) -> dict:
+        config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION = False
+        model.setTranslatorCustomOpenAIAsrCorrection(False)
+        return {"status":200, "result":config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION}
+
+    def testCustomOpenAITranslation(self, data, *args, **kwargs) -> dict:
+        printLog("Test Custom OpenAI Translation", data)
+        try:
+            text = str(data.get("text", ""))
+            input_lang = str(data.get("input_lang", ""))
+            output_lang = str(data.get("output_lang", ""))
+            if not text or not input_lang or not output_lang:
+                raise Exception("Missing required fields: text, input_lang, output_lang")
+            result = model.testTranslatorCustomOpenAITranslation(text, input_lang, output_lang)
+            if result is False:
+                raise Exception("Custom OpenAI client is not connected")
+            response = {"status":200, "result":result}
+        except Exception as e:
+            errorLogging()
+            response = VRCTError.create_exception_error_response(e, data=None)
+        return response
+
+    # Extra params for Custom OpenAI slot 1
+    @staticmethod
+    def getCustomOpenAIMaxTokens(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_MAX_TOKENS}
+
+    def setCustomOpenAIMaxTokens(self, data, *args, **kwargs) -> dict:
+        try:
+            config.CUSTOM_OPENAI_MAX_TOKENS = int(data)
+            model.setTranslatorCustomOpenAIMaxTokens(int(data))
+            if model.getTranslatorCustomOpenAIConnected():
+                model.updateTranslatorCustomOpenAIClient()
+            return {"status":200, "result":config.CUSTOM_OPENAI_MAX_TOKENS}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_MAX_TOKENS)
+
+    @staticmethod
+    def getCustomOpenAITemperature(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_TEMPERATURE}
+
+    def setCustomOpenAITemperature(self, data, *args, **kwargs) -> dict:
+        try:
+            config.CUSTOM_OPENAI_TEMPERATURE = float(data)
+            model.setTranslatorCustomOpenAITemperature(float(data))
+            if model.getTranslatorCustomOpenAIConnected():
+                model.updateTranslatorCustomOpenAIClient()
+            return {"status":200, "result":config.CUSTOM_OPENAI_TEMPERATURE}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_TEMPERATURE)
+
+    @staticmethod
+    def getCustomOpenAICustomSystemPrompt(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT}
+
+    def setCustomOpenAICustomSystemPrompt(self, data, *args, **kwargs) -> dict:
+        try:
+            data = str(data)
+            config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT = data
+            model.setTranslatorCustomOpenAICustomSystemPrompt(data)
+            return {"status":200, "result":config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT)
+
+    # --- Custom OpenAI Compatible API 2 ---
+    @staticmethod
+    def getCustomOpenAI2URL(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_URL_2}
+
+    def setCustomOpenAI2URL(self, data, *args, **kwargs) -> dict:
+        try:
+            data = str(data)
+            config.CUSTOM_OPENAI_URL_2 = data
+            return {"status":200, "result":config.CUSTOM_OPENAI_URL_2}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_URL_2)
+
+    @staticmethod
+    def getCustomOpenAI2AuthKey(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.AUTH_KEYS["Custom_OpenAI_API_2"]}
+
+    def setCustomOpenAI2AuthKey(self, data, *args, **kwargs) -> dict:
+        try:
+            data = str(data)
+            auth_keys = config.AUTH_KEYS
+            auth_keys["Custom_OpenAI_API_2"] = data
+            config.AUTH_KEYS = auth_keys
+            return {"status":200, "result":config.AUTH_KEYS["Custom_OpenAI_API_2"]}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=None)
+
+    def delCustomOpenAI2AuthKey(self, *args, **kwargs) -> dict:
+        translator_name = "Custom_OpenAI_API_2"
+        auth_keys = config.AUTH_KEYS
+        auth_keys[translator_name] = None
+        config.AUTH_KEYS = auth_keys
+        config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = False
+        self.run(200, self.run_mapping["custom_openai_2_connection"], False)
+        self.updateTranslationEngineAndEngineList()
+        return {"status":200, "result":config.AUTH_KEYS[translator_name]}
+
+    @staticmethod
+    def getCustomOpenAI2Model(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_MODEL_2}
+
+    def setCustomOpenAI2Model(self, data, *args, **kwargs) -> dict:
+        try:
+            data = str(data)
+            config.CUSTOM_OPENAI_MODEL_2 = data
+            return {"status":200, "result":config.CUSTOM_OPENAI_MODEL_2}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_MODEL_2)
+
+    def getCustomOpenAI2Connection(self, *args, **kwargs) -> dict:
+        return {"status":200, "result":model.getTranslatorCustomOpenAI2Connected()}
+
+    def checkCustomOpenAI2Connection(self, *args, **kwargs) -> dict:
+        translator_name = "Custom_OpenAI_API_2"
+        try:
+            base_url = config.CUSTOM_OPENAI_URL_2
+            api_key = config.AUTH_KEYS.get(translator_name)
+            model_name = config.CUSTOM_OPENAI_MODEL_2
+            if not base_url or not api_key:
+                raise Exception("Custom OpenAI 2 URL or API Key is not set")
+            result = model.authenticationTranslatorCustomOpenAI2(base_url=base_url, api_key=api_key)
+            if result is True:
+                config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = True
+                if model_name:
+                    model.setTranslatorCustomOpenAI2Model(model=model_name)
+                    model.updateTranslatorCustomOpenAI2Client()
+                model.setTranslatorCustomOpenAI2AsrCorrection(config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_2)
+                model.setTranslatorCustomOpenAI2MaxTokens(config.CUSTOM_OPENAI_MAX_TOKENS_2)
+                model.setTranslatorCustomOpenAI2Temperature(config.CUSTOM_OPENAI_TEMPERATURE_2)
+                model.setTranslatorCustomOpenAI2CustomSystemPrompt(config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_2)
+                self.updateTranslationEngineAndEngineList()
+                response = {"status":200, "result":True}
+            else:
+                config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = False
+                self.updateTranslationEngineAndEngineList()
+                response = VRCTError.create_error_response(ErrorCode.CONNECTION_CUSTOM_OPENAI_2_FAILED, data=False)
+        except Exception as e:
+            errorLogging()
+            config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = False
+            self.updateTranslationEngineAndEngineList()
+            response = VRCTError.create_exception_error_response(e, data=False)
+        return response
+
+    @staticmethod
+    def getCustomOpenAI2AsrCorrection(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_2}
+
+    def setEnableCustomOpenAI2AsrCorrection(self, *args, **kwargs) -> dict:
+        config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_2 = True
+        model.setTranslatorCustomOpenAI2AsrCorrection(True)
+        return {"status":200, "result":config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_2}
+
+    def setDisableCustomOpenAI2AsrCorrection(self, *args, **kwargs) -> dict:
+        config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_2 = False
+        model.setTranslatorCustomOpenAI2AsrCorrection(False)
+        return {"status":200, "result":config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_2}
+
+    def testCustomOpenAI2Translation(self, data, *args, **kwargs) -> dict:
+        try:
+            text = str(data.get("text", ""))
+            input_lang = str(data.get("input_lang", ""))
+            output_lang = str(data.get("output_lang", ""))
+            if not text or not input_lang or not output_lang:
+                raise Exception("Missing required fields")
+            result = model.testTranslatorCustomOpenAI2Translation(text, input_lang, output_lang)
+            if result is False:
+                raise Exception("Custom OpenAI 2 client is not connected")
+            return {"status":200, "result":result}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=None)
+
+    @staticmethod
+    def getCustomOpenAI2MaxTokens(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_MAX_TOKENS_2}
+
+    def setCustomOpenAI2MaxTokens(self, data, *args, **kwargs) -> dict:
+        try:
+            config.CUSTOM_OPENAI_MAX_TOKENS_2 = int(data)
+            model.setTranslatorCustomOpenAI2MaxTokens(int(data))
+            if model.getTranslatorCustomOpenAI2Connected():
+                model.updateTranslatorCustomOpenAI2Client()
+            return {"status":200, "result":config.CUSTOM_OPENAI_MAX_TOKENS_2}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_MAX_TOKENS_2)
+
+    @staticmethod
+    def getCustomOpenAI2Temperature(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_TEMPERATURE_2}
+
+    def setCustomOpenAI2Temperature(self, data, *args, **kwargs) -> dict:
+        try:
+            config.CUSTOM_OPENAI_TEMPERATURE_2 = float(data)
+            model.setTranslatorCustomOpenAI2Temperature(float(data))
+            if model.getTranslatorCustomOpenAI2Connected():
+                model.updateTranslatorCustomOpenAI2Client()
+            return {"status":200, "result":config.CUSTOM_OPENAI_TEMPERATURE_2}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_TEMPERATURE_2)
+
+    @staticmethod
+    def getCustomOpenAI2CustomSystemPrompt(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_2}
+
+    def setCustomOpenAI2CustomSystemPrompt(self, data, *args, **kwargs) -> dict:
+        try:
+            data = str(data)
+            config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_2 = data
+            model.setTranslatorCustomOpenAI2CustomSystemPrompt(data)
+            return {"status":200, "result":config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_2}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_2)
+
+    # --- Custom OpenAI Compatible API 3 ---
+    @staticmethod
+    def getCustomOpenAI3URL(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_URL_3}
+
+    def setCustomOpenAI3URL(self, data, *args, **kwargs) -> dict:
+        try:
+            data = str(data)
+            config.CUSTOM_OPENAI_URL_3 = data
+            return {"status":200, "result":config.CUSTOM_OPENAI_URL_3}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_URL_3)
+
+    @staticmethod
+    def getCustomOpenAI3AuthKey(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.AUTH_KEYS["Custom_OpenAI_API_3"]}
+
+    def setCustomOpenAI3AuthKey(self, data, *args, **kwargs) -> dict:
+        try:
+            data = str(data)
+            auth_keys = config.AUTH_KEYS
+            auth_keys["Custom_OpenAI_API_3"] = data
+            config.AUTH_KEYS = auth_keys
+            return {"status":200, "result":config.AUTH_KEYS["Custom_OpenAI_API_3"]}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=None)
+
+    def delCustomOpenAI3AuthKey(self, *args, **kwargs) -> dict:
+        translator_name = "Custom_OpenAI_API_3"
+        auth_keys = config.AUTH_KEYS
+        auth_keys[translator_name] = None
+        config.AUTH_KEYS = auth_keys
+        config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = False
+        self.run(200, self.run_mapping["custom_openai_3_connection"], False)
+        self.updateTranslationEngineAndEngineList()
+        return {"status":200, "result":config.AUTH_KEYS[translator_name]}
+
+    @staticmethod
+    def getCustomOpenAI3Model(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_MODEL_3}
+
+    def setCustomOpenAI3Model(self, data, *args, **kwargs) -> dict:
+        try:
+            data = str(data)
+            config.CUSTOM_OPENAI_MODEL_3 = data
+            return {"status":200, "result":config.CUSTOM_OPENAI_MODEL_3}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_MODEL_3)
+
+    def getCustomOpenAI3Connection(self, *args, **kwargs) -> dict:
+        return {"status":200, "result":model.getTranslatorCustomOpenAI3Connected()}
+
+    def checkCustomOpenAI3Connection(self, *args, **kwargs) -> dict:
+        translator_name = "Custom_OpenAI_API_3"
+        try:
+            base_url = config.CUSTOM_OPENAI_URL_3
+            api_key = config.AUTH_KEYS.get(translator_name)
+            model_name = config.CUSTOM_OPENAI_MODEL_3
+            if not base_url or not api_key:
+                raise Exception("Custom OpenAI 3 URL or API Key is not set")
+            result = model.authenticationTranslatorCustomOpenAI3(base_url=base_url, api_key=api_key)
+            if result is True:
+                config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = True
+                if model_name:
+                    model.setTranslatorCustomOpenAI3Model(model=model_name)
+                    model.updateTranslatorCustomOpenAI3Client()
+                model.setTranslatorCustomOpenAI3AsrCorrection(config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_3)
+                model.setTranslatorCustomOpenAI3MaxTokens(config.CUSTOM_OPENAI_MAX_TOKENS_3)
+                model.setTranslatorCustomOpenAI3Temperature(config.CUSTOM_OPENAI_TEMPERATURE_3)
+                model.setTranslatorCustomOpenAI3CustomSystemPrompt(config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_3)
+                self.updateTranslationEngineAndEngineList()
+                response = {"status":200, "result":True}
+            else:
+                config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = False
+                self.updateTranslationEngineAndEngineList()
+                response = VRCTError.create_error_response(ErrorCode.CONNECTION_CUSTOM_OPENAI_3_FAILED, data=False)
+        except Exception as e:
+            errorLogging()
+            config.SELECTABLE_TRANSLATION_ENGINE_STATUS[translator_name] = False
+            self.updateTranslationEngineAndEngineList()
+            response = VRCTError.create_exception_error_response(e, data=False)
+        return response
+
+    @staticmethod
+    def getCustomOpenAI3AsrCorrection(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_3}
+
+    def setEnableCustomOpenAI3AsrCorrection(self, *args, **kwargs) -> dict:
+        config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_3 = True
+        model.setTranslatorCustomOpenAI3AsrCorrection(True)
+        return {"status":200, "result":config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_3}
+
+    def setDisableCustomOpenAI3AsrCorrection(self, *args, **kwargs) -> dict:
+        config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_3 = False
+        model.setTranslatorCustomOpenAI3AsrCorrection(False)
+        return {"status":200, "result":config.CUSTOM_OPENAI_ENABLE_ASR_CORRECTION_3}
+
+    def testCustomOpenAI3Translation(self, data, *args, **kwargs) -> dict:
+        try:
+            text = str(data.get("text", ""))
+            input_lang = str(data.get("input_lang", ""))
+            output_lang = str(data.get("output_lang", ""))
+            if not text or not input_lang or not output_lang:
+                raise Exception("Missing required fields")
+            result = model.testTranslatorCustomOpenAI3Translation(text, input_lang, output_lang)
+            if result is False:
+                raise Exception("Custom OpenAI 3 client is not connected")
+            return {"status":200, "result":result}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=None)
+
+    @staticmethod
+    def getCustomOpenAI3MaxTokens(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_MAX_TOKENS_3}
+
+    def setCustomOpenAI3MaxTokens(self, data, *args, **kwargs) -> dict:
+        try:
+            config.CUSTOM_OPENAI_MAX_TOKENS_3 = int(data)
+            model.setTranslatorCustomOpenAI3MaxTokens(int(data))
+            if model.getTranslatorCustomOpenAI3Connected():
+                model.updateTranslatorCustomOpenAI3Client()
+            return {"status":200, "result":config.CUSTOM_OPENAI_MAX_TOKENS_3}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_MAX_TOKENS_3)
+
+    @staticmethod
+    def getCustomOpenAI3Temperature(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_TEMPERATURE_3}
+
+    def setCustomOpenAI3Temperature(self, data, *args, **kwargs) -> dict:
+        try:
+            config.CUSTOM_OPENAI_TEMPERATURE_3 = float(data)
+            model.setTranslatorCustomOpenAI3Temperature(float(data))
+            if model.getTranslatorCustomOpenAI3Connected():
+                model.updateTranslatorCustomOpenAI3Client()
+            return {"status":200, "result":config.CUSTOM_OPENAI_TEMPERATURE_3}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_TEMPERATURE_3)
+
+    @staticmethod
+    def getCustomOpenAI3CustomSystemPrompt(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_3}
+
+    def setCustomOpenAI3CustomSystemPrompt(self, data, *args, **kwargs) -> dict:
+        try:
+            data = str(data)
+            config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_3 = data
+            model.setTranslatorCustomOpenAI3CustomSystemPrompt(data)
+            return {"status":200, "result":config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_3}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_3)
+
+    # --- Fallback Settings ---
+    @staticmethod
+    def getTranslationFallbackEnabled(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.TRANSLATION_FALLBACK_ENABLED}
+
+    def setEnableTranslationFallback(self, *args, **kwargs) -> dict:
+        config.TRANSLATION_FALLBACK_ENABLED = True
+        return {"status":200, "result":config.TRANSLATION_FALLBACK_ENABLED}
+
+    def setDisableTranslationFallback(self, *args, **kwargs) -> dict:
+        config.TRANSLATION_FALLBACK_ENABLED = False
+        return {"status":200, "result":config.TRANSLATION_FALLBACK_ENABLED}
+
+    @staticmethod
+    def getTranslationFallbackTimeout(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.TRANSLATION_FALLBACK_TIMEOUT}
+
+    def setTranslationFallbackTimeout(self, data, *args, **kwargs) -> dict:
+        try:
+            config.TRANSLATION_FALLBACK_TIMEOUT = float(data)
+            return {"status":200, "result":config.TRANSLATION_FALLBACK_TIMEOUT}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.TRANSLATION_FALLBACK_TIMEOUT)
+
+    @staticmethod
+    def getTranslationFallbackEngine(*args, **kwargs) -> dict:
+        return {"status":200, "result":config.TRANSLATION_FALLBACK_ENGINE}
+
+    def setTranslationFallbackEngine(self, data, *args, **kwargs) -> dict:
+        try:
+            config.TRANSLATION_FALLBACK_ENGINE = str(data)
+            return {"status":200, "result":config.TRANSLATION_FALLBACK_ENGINE}
+        except Exception as e:
+            errorLogging()
+            return VRCTError.create_exception_error_response(e, data=config.TRANSLATION_FALLBACK_ENGINE)
         return {"status":200, "result":config.AUTH_KEYS["Groq_API"]}
 
     def setGroqAuthKey(self, data, *args, **kwargs) -> dict:

@@ -15,12 +15,17 @@ except Exception:
 
 def _authentication_check(api_key: str, base_url: str | None = None) -> bool:
     """Check if the provided API key is valid by attempting to list models.
+    For custom base_url endpoints, accepts the key if models.list() is unsupported.
     """
     try:
         client = OpenAI(api_key=api_key, base_url=base_url)
         client.models.list()
         return True
     except Exception:
+        # Custom OpenAI-compatible endpoints may not support models.list()
+        # Accept the key and let the actual translation attempt validate it
+        if base_url is not None:
+            return True
         return False
 
 def _get_available_text_models(api_key: str, base_url: str | None = None) -> list[str]:
@@ -64,14 +69,19 @@ class OpenAIClient:
     """OpenAI Translation simple wrapper.
     prompt/translation_openai.yml から system_prompt / supported_languages を読み込む。
     """
-    def __init__(self, base_url: str | None = None, root_path: str = None):
+    def __init__(self, base_url: str | None = None, root_path: str = None, prompt_filename: str = "translation_openai.yml"):
         self.api_key = None
         self.model = None
         self.base_url = base_url  # None の場合は公式エンドポイント
+        self.enable_asr_correction = False
+        self.max_tokens = 2048
+        self.temperature = 0.3
+        self.custom_system_prompt = ""  # User-defined prompt; empty = use YAML template
 
-        prompt_config = loadTranslatePromptConfig(root_path, "translation_openai.yml")
+        prompt_config = loadTranslatePromptConfig(root_path, prompt_filename)
         self.supported_languages = list(translation_lang["OpenAI_API"]["source"].keys())
         self.prompt_template = prompt_config["system_prompt"]
+        self.prompt_template_asr_correction = prompt_config.get("system_prompt_asr_correction", self.prompt_template)
         # history config (optional)
         self.history_cfg = prompt_config.get("history", {
             "use_history": False,
@@ -113,6 +123,8 @@ class OpenAIClient:
             model=self.model,
             api_key=SecretStr(self.api_key),
             streaming=False,
+            max_tokens=self.max_tokens if self.max_tokens > 0 else None,
+            temperature=self.temperature,
         )
 
     def setContextHistory(self, history_items: list[dict]) -> None:
@@ -126,7 +138,13 @@ class OpenAIClient:
         self._context_history = history_items or []
 
     def translate(self, text: str, input_lang: str, output_lang: str) -> str:
-        system_prompt = self.prompt_template.format(
+        if self.custom_system_prompt:
+            template = self.custom_system_prompt
+        elif self.enable_asr_correction:
+            template = self.prompt_template_asr_correction
+        else:
+            template = self.prompt_template
+        system_prompt = template.format(
             supported_languages=self.supported_languages,
             input_lang=input_lang,
             output_lang=output_lang,
