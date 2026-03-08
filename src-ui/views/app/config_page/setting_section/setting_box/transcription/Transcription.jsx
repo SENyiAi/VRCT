@@ -224,6 +224,7 @@ const TranscriptionEngine_Box = () => {
             options={[
                 { id: "Google", label: "Google" },
                 { id: "Whisper", label: "Whisper" },
+                { id: "WebView", label: "WebView" },
             ]}
             checked_variable={currentSelectedTranscriptionEngine}
         />

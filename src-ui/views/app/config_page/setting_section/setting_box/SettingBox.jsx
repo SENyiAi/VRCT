@@ -11,6 +11,7 @@ import {
     Hotkeys,
     Plugins,
     AboutVrct,
+    Honkai,
 } from "@setting_box";
 
 export const SettingBox = () => {
@@ -36,6 +37,8 @@ export const SettingBox = () => {
             return <Plugins />;
         case "about_vrct":
             return <AboutVrct />;
+        case "honkai":
+            return <Honkai />;
 
         default:
             return null;

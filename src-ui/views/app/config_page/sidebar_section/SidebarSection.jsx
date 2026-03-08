@@ -16,7 +16,7 @@ export const SidebarSection = () => {
                     <Tab tab_id="advanced_settings" />
                 </div>
                 <div className={styles.separated_tabs_wrapper}>
-                    <Tab tab_id="about_vrct" />
+                    <Tab tab_id="honkai" />
                 </div>
             </div>
         </div>
@@ -49,6 +49,7 @@ const Tab = (props) => {
     const getLabel = () => {
         if (props.tab_id === "vr") return "VR";
         if (props.tab_id === "about_vrct") return "About VRCT";
+        if (props.tab_id === "honkai") return "Honkai";
         return t(`config_page.side_menu_labels.${props.tab_id}`);
     };
 

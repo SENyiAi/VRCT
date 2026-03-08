@@ -8,3 +8,4 @@ export { FontFamilyController } from "./FontFamilyController";
 export { TransparencyController } from "./TransparencyController";
 export { PluginsController } from "./PluginsController";
 export { CornerRadiusController } from "./CornerRadiusController";
+export { WebViewSpeechController } from "./WebViewSpeechController";

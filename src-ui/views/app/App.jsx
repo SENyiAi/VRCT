@@ -11,6 +11,7 @@ import {
     TransparencyController,
     CornerRadiusController,
     PluginsController,
+    WebViewSpeechController,
 } from "./_app_controllers";
 
 import styles from "./App.module.scss";
@@ -46,6 +47,7 @@ export const App = () => {
                 <FontFamilyController />
                 <TransparencyController />
                 <CornerRadiusController />
+                <WebViewSpeechController />
 
                 {(currentIsBackendReady.data === false || currentIsVrctAvailable.data === false)
                     ? <SplashComponent />

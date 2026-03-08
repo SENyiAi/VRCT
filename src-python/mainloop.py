@@ -118,6 +118,8 @@ mapping = {
     "/set/enable/transcription_send": {"status": False, "variable":controller.setEnableTranscriptionSend},
     "/set/disable/transcription_send": {"status": False, "variable":controller.setDisableTranscriptionSend},
 
+    "/run/webview_transcription_result": {"status": True, "variable":controller.webviewTranscriptionResult},
+
     "/set/enable/transcription_receive": {"status": False, "variable":controller.setEnableTranscriptionReceive},
     "/set/disable/transcription_receive": {"status": False, "variable":controller.setDisableTranscriptionReceive},
 

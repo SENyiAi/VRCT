@@ -8,3 +8,4 @@ export { Vr } from "./vr/Vr";
 export { Hotkeys } from "./hotkeys/Hotkeys";
 export { Plugins } from "./plugins/Plugins";
 export { AboutVrct } from "./about_vrct/AboutVrct";
+export { Honkai } from "./honkai/Honkai";

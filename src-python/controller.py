@@ -3292,6 +3292,24 @@ class Controller:
             config.ENABLE_TRANSCRIPTION_RECEIVE = False
         return {"status":200, "result":config.ENABLE_TRANSCRIPTION_RECEIVE}
 
+    def webviewTranscriptionResult(self, data, *args, **kwargs) -> dict:
+        """Handle speech recognition results from the frontend WebView (Web Speech API)."""
+        printLog("webviewTranscriptionResult received:", data)
+        if not data or not isinstance(data, dict):
+            return {"status":400, "result":"Invalid webview transcription data"}
+        text = data.get("text", "")
+        language = data.get("language", None)
+        is_final = data.get("is_final", True)
+        if not text or not is_final:
+            return {"status":200, "result":True}
+        # Feed into the same pipeline as mic transcription
+        result = {"text": text, "language": language}
+        try:
+            self.micMessage(result)
+        except Exception:
+            errorLogging()
+        return {"status":200, "result":True}
+
     def sendMessageBox(self, data, *args, **kwargs) -> dict:
         response = self.chatMessage(data)
         return response
@@ -3440,6 +3458,10 @@ class Controller:
         self.run(200, self.run_mapping["translation_engines"], selectable_engines)
 
     def startTranscriptionSendMessage(self) -> None:
+        # WebView engine handles speech recognition in the frontend; no mic recording needed
+        if config.SELECTED_TRANSCRIPTION_ENGINE == "WebView":
+            printLog("Transcription engine is WebView — skipping mic recording, frontend handles speech recognition")
+            return
         while self.device_access_status is False:
             sleep(1)
         self.device_access_status = False
