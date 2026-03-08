@@ -14,7 +14,7 @@ system_prompt_asr_correction: |
   修复语音识别（ASR）转写文本中的错误：
   - 同音纠错：修复因拼音相似、环境噪音导致的错别字
   - 术语还原：重点识别 VRChat 专用语（Unity, Blender, SDK, PhysBones, Index, Avatar, Instance, Crasher, MMD, Quest, PCVR, FBT, OSC）
-  - 语境推断：结合上下文对话历史推断正确用词
+  - 语境推断：结合上下文对话历史推断正确用词，适当加入标点符号
 
   第二步：翻译
   将纠错后的文本从 {input_lang} 翻译为 {output_lang}：
@@ -23,7 +23,7 @@ system_prompt_asr_correction: |
   - 技术术语使用通用译法
 
   【输出要求】
-  仅输出最终翻译结果，不要输出纠错过程、解释或任何额外内容。
+  仅按照格式输出最终翻译结果，不要输出纠错过程、解释或任何额外内容。
 
   Supported languages: {supported_languages}
 

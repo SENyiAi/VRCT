@@ -17,7 +17,10 @@ except Exception:
     def get_supported_compute_types(device: str, device_index: int) -> List[str]:
         return []
 
-import requests
+try:
+    import requests
+except Exception:
+    requests = None  # type: ignore
 import ipaddress
 import socket
 
@@ -61,6 +64,8 @@ def isConnectedNetwork(url="http://www.bing.com", timeout=3) -> bool:
 
     Returns True when a 200 response is returned within `timeout` seconds.
     """
+    if requests is None:
+        return False
     try:
         response = requests.get(url, timeout=timeout)
         return response.status_code == 200

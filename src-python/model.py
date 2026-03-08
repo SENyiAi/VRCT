@@ -10,11 +10,22 @@ from time import sleep
 from queue import Queue
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from threading import Thread
-from requests import get as requests_get
 from typing import Callable, Optional, cast
-from packaging.version import parse
 
-from flashtext import KeywordProcessor
+try:
+    from requests import get as requests_get
+except Exception:
+    requests_get = None  # type: ignore
+
+try:
+    from packaging.version import parse
+except Exception:
+    parse = None  # type: ignore
+
+try:
+    from flashtext import KeywordProcessor
+except Exception:
+    KeywordProcessor = None  # type: ignore
 
 from device_manager import device_manager
 from config import config
