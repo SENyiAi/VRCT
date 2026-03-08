@@ -138,6 +138,7 @@ class LMStudioClient:
                     item_tmpl.format(
                         timestamp=timestamp_str,
                         source=h.get("source", ""),
+                        role=h.get("role", ""),
                         text=h.get("text", ""),
                     )
                 )

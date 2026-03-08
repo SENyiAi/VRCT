@@ -3816,17 +3816,43 @@ class Controller:
         removeLog()
         printLog("Start Initialization")
 
-        # Assume network is available; actual check deferred to background
-        connected_network = True
-        self.connectedNetwork()
-        printLog("Network: assumed connected (background verify later)")
+        # Check network connectivity (needed for weight download)
+        connected_network = isConnectedNetwork()
+        if connected_network is True:
+            self.connectedNetwork()
+        else:
+            self.disconnectedNetwork()
+        printLog(f"Connected Network: {connected_network}")
 
         self.initializationProgress(1)
 
         # Backward compatibility rename (fast, file-only)
         model.backwardCompatibleTranslatorCTranslate2ModelRenameWeightsDir()
 
-        # Lightweight file-existence checks for selected weights (no model loading)
+        # Download weights if missing (first run or weights deleted)
+        if connected_network is True:
+            printLog("Check and Download CTranslate2 Model Weight")
+            weight_type = config.CTRANSLATE2_WEIGHT_TYPE
+            th_download_ctranslate2 = None
+            if model.checkTranslatorCTranslate2ModelWeight(weight_type) is False:
+                th_download_ctranslate2 = Thread(target=self.downloadCtranslate2Weight, args=(weight_type, False))
+                th_download_ctranslate2.daemon = True
+                th_download_ctranslate2.start()
+
+            printLog("Check and Download Whisper Model Weight")
+            weight_type = config.WHISPER_WEIGHT_TYPE
+            th_download_whisper = None
+            if model.checkTranscriptionWhisperModelWeight(weight_type) is False:
+                th_download_whisper = Thread(target=self.downloadWhisperWeight, args=(weight_type, False))
+                th_download_whisper.daemon = True
+                th_download_whisper.start()
+
+            if isinstance(th_download_ctranslate2, Thread):
+                th_download_ctranslate2.join()
+            if isinstance(th_download_whisper, Thread):
+                th_download_whisper.join()
+
+        # Re-check after potential download
         ctranslate2_available = model.checkTranslatorCTranslate2ModelWeight(config.CTRANSLATE2_WEIGHT_TYPE)
         whisper_available = model.checkTranscriptionWhisperModelWeight(config.WHISPER_WEIGHT_TYPE)
 
@@ -3959,9 +3985,9 @@ class Controller:
         # === Deferred background tasks (after UI is responsive) ===
         def deferred_background_init():
             try:
-                # 1. Actual network connectivity check
-                actual_connected = isConnectedNetwork()
-                printLog(f"[Background] Network check: {actual_connected}")
+                # Use the network result from init (already checked)
+                actual_connected = connected_network
+                printLog(f"[Background] Network status: {actual_connected}")
                 if not actual_connected:
                     self.disconnectedNetwork()
                     # Update engine statuses for network-dependent engines

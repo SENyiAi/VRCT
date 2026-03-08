@@ -479,6 +479,8 @@ class Translator:
         return self.siliconflow_client.setModel(model)
 
     def updateSiliconFlowClient(self) -> None:
+        if self.siliconflow_client is None:
+            return
         self.siliconflow_client.updateClient()
 
     def setSiliconFlowAsrCorrection(self, enabled: bool) -> None:

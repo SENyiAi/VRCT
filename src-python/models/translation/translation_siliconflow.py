@@ -119,13 +119,9 @@ class SiliconFlowClient:
     def updateClient(self) -> None:
         extra_kwargs = {}
         if self.enable_thinking:
-            extra_kwargs["top_p"] = 0.9
-            extra_kwargs["top_k"] = 40
-            extra_kwargs["min_p"] = 0.05
+            extra_kwargs["top_p"] = 0.95
         else:
             extra_kwargs["top_p"] = 0.9
-            extra_kwargs["top_k"] = 40
-            extra_kwargs["min_p"] = 0.05
         self.siliconflow_llm = ChatOpenAI(
             base_url=self.base_url,
             model=self.model,
@@ -175,6 +171,7 @@ class SiliconFlowClient:
                     item_tmpl.format(
                         timestamp=timestamp_str,
                         source=h.get("source", ""),
+                        role=h.get("role", ""),
                         text=h.get("text", ""),
                     )
                 )
