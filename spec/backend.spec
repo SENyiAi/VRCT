@@ -14,21 +14,17 @@ a = Analysis(
         ('./../.venv/Lib/site-packages/faster_whisper', 'faster_whisper/'),
         ('./../.venv/Lib/site-packages/hf_xet', 'hf_xet/')
         ],
-    hiddenimports=[],
+    hiddenimports=['charset_normalizer', 'chardet'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
         'pandas', 'matplotlib', 'PyQt5',
-        'torch.distributed', 'torch.testing', 'torch.onnx',
-        'torch.fx', 'torch.ao', 'torch.profiler',
-        'torch.utils.benchmark', 'torch.utils.tensorboard',
-        'torch.hub',
-        'audioop', 'aifc',
+        'torch.testing', 'torch.utils.benchmark', 'torch.utils.tensorboard',
         'IPython', 'PIL.ImageQt', 'tkinter', 'wx',
     ],
     noarchive=False,
-    optimize=1,
+    optimize=0,
 )
 pyz = PYZ(a.pure)
 
