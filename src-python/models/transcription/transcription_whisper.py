@@ -65,23 +65,14 @@ def downloadFile(url: str, path: str, func: Optional[Callable[[float], None]] = 
         pass
 
 def checkWhisperWeight(root: str, weight_type: str) -> bool:
-    """Return True if a Whisper model for `weight_type` is loadable from disk.
+    """Return True if Whisper model files for `weight_type` exist on disk.
 
-    This attempts to construct a local `WhisperModel` with local_files_only=True
-    to verify required files exist and are compatible.
+    Uses lightweight file-existence check instead of loading the full model.
     """
     path = os_path.join(root, "weights", "whisper", weight_type)
+    required_files = ["config.json", "model.bin"]
     try:
-        WhisperModel(
-            path,
-            device="cpu",
-            device_index=0,
-            compute_type="int8",
-            cpu_threads=4,
-            num_workers=1,
-            local_files_only=True,
-        )
-        return True
+        return all(os_path.isfile(os_path.join(path, f)) for f in required_files)
     except Exception:
         return False
 

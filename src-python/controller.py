@@ -3647,57 +3647,20 @@ class Controller:
         removeLog()
         printLog("Start Initialization")
 
-        # Network check
-        connected_network = isConnectedNetwork()
-        if connected_network is True:
-            self.connectedNetwork()
-        else:
-            self.disconnectedNetwork()
-        printLog(f"Connected Network: {connected_network}")
+        # Assume network is available; actual check deferred to background
+        connected_network = True
+        self.connectedNetwork()
+        printLog("Network: assumed connected (background verify later)")
 
         self.initializationProgress(1)
 
-        # Download weights
-        if connected_network is True:
-            printLog("Download CTranslate2 Model Weight")
-            # 後方互換用
-            model.backwardCompatibleTranslatorCTranslate2ModelRenameWeightsDir()
+        # Backward compatibility rename (fast, file-only)
+        model.backwardCompatibleTranslatorCTranslate2ModelRenameWeightsDir()
 
-            weight_type = config.CTRANSLATE2_WEIGHT_TYPE
-            th_download_ctranslate2 = None
-            if model.checkTranslatorCTranslate2ModelWeight(weight_type) is False:
-                th_download_ctranslate2 = Thread(target=self.downloadCtranslate2Weight, args=(weight_type, False))
-                th_download_ctranslate2.daemon = True
-                th_download_ctranslate2.start()
+        # Lightweight file-existence checks for selected weights (no model loading)
+        ctranslate2_available = model.checkTranslatorCTranslate2ModelWeight(config.CTRANSLATE2_WEIGHT_TYPE)
+        whisper_available = model.checkTranscriptionWhisperModelWeight(config.WHISPER_WEIGHT_TYPE)
 
-            printLog("Download Whisper Model Weight")
-            weight_type = config.WHISPER_WEIGHT_TYPE
-            th_download_whisper = None
-            if model.checkTranscriptionWhisperModelWeight(weight_type) is False:
-                th_download_whisper = Thread(target=self.downloadWhisperWeight, args=(weight_type, False))
-                th_download_whisper.daemon = True
-                th_download_whisper.start()
-
-            if isinstance(th_download_ctranslate2, Thread):
-                th_download_ctranslate2.join()
-            if isinstance(th_download_whisper, Thread):
-                th_download_whisper.join()
-
-        # Check and disable/enable AI models (parallel)
-
-        def check_ctranslate2() -> bool:
-            return model.checkTranslatorCTranslate2ModelWeight(config.CTRANSLATE2_WEIGHT_TYPE) is True
-
-        def check_whisper() -> bool:
-            return model.checkTranscriptionWhisperModelWeight(config.WHISPER_WEIGHT_TYPE) is True
-
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            future_ctranslate2 = executor.submit(check_ctranslate2)
-            future_whisper = executor.submit(check_whisper)
-            ctranslate2_available = future_ctranslate2.result()
-            whisper_available = future_whisper.result()
-
-        # インスタンス変数にキャッシュ（後続の処理で再利用）
         self._ctranslate2_available_cache = ctranslate2_available
         self._whisper_available_cache = whisper_available
 
@@ -3706,233 +3669,52 @@ class Controller:
         else:
             self.enableAiModels()
 
-        # Init Translation Engine Status (with parallel processing)
-        printLog("Init Translation Engine Status")
-
-        def check_translation_engine(engine: str) -> tuple:
-            """翻訳エンジンのステータスをチェック（並列実行用）"""
-            status = False
-            auth_key_invalid = False
-            model_list = None
-            selected_model = None
-
-            try:
-                match engine:
-                    case "CTranslate2":
-                        # 既に前のステップでチェック済み、結果を再利用
-                        status = ctranslate2_available
-                    case "DeepL_API":
-                        if config.AUTH_KEYS[engine] is None:
-                            status = False
-                        else:
-                            if model.authenticationTranslatorDeepLAuthKey(auth_key=config.AUTH_KEYS[engine]) is True:
-                                status = True
-                            else:
-                                auth_key_invalid = True
-                    case "Plamo_API":
-                        if config.AUTH_KEYS[engine] is None:
-                            status = False
-                        else:
-                            if model.authenticationTranslatorPlamoAuthKey(auth_key=config.AUTH_KEYS[engine]) is True:
-                                model_list = model.getTranslatorPlamoModelList()
-                                selected_model = config.SELECTED_PLAMO_MODEL if config.SELECTED_PLAMO_MODEL in model_list else model_list[0]
-                                status = True
-                            else:
-                                auth_key_invalid = True
-                    case "Gemini_API":
-                        if config.AUTH_KEYS[engine] is None:
-                            status = False
-                        else:
-                            if model.authenticationTranslatorGeminiAuthKey(auth_key=config.AUTH_KEYS[engine]) is True:
-                                model_list = model.getTranslatorGeminiModelList()
-                                selected_model = config.SELECTED_GEMINI_MODEL if config.SELECTED_GEMINI_MODEL in model_list else model_list[0]
-                                status = True
-                            else:
-                                auth_key_invalid = True
-                    case "OpenAI_API":
-                        if config.AUTH_KEYS[engine] is None:
-                            status = False
-                        else:
-                            if model.authenticationTranslatorOpenAIAuthKey(auth_key=config.AUTH_KEYS[engine]) is True:
-                                model_list = model.getTranslatorOpenAIModelList()
-                                selected_model = config.SELECTED_OPENAI_MODEL if config.SELECTED_OPENAI_MODEL in model_list else model_list[0]
-                                status = True
-                            else:
-                                auth_key_invalid = True
-                    case "Groq_API":
-                        if config.AUTH_KEYS[engine] is None:
-                            status = False
-                        else:
-                            if model.authenticationTranslatorGroqAuthKey(auth_key=config.AUTH_KEYS[engine]) is True:
-                                model_list = model.getTranslatorGroqModelList()
-                                selected_model = config.SELECTED_GROQ_MODEL if config.SELECTED_GROQ_MODEL in model_list else model_list[0]
-                                status = True
-                            else:
-                                auth_key_invalid = True
-                    case "OpenRouter_API":
-                        if config.AUTH_KEYS[engine] is None:
-                            status = False
-                        else:
-                            if model.authenticationTranslatorOpenRouterAuthKey(auth_key=config.AUTH_KEYS[engine]) is True:
-                                model_list = model.getTranslatorOpenRouterModelList()
-                                selected_model = config.SELECTED_OPENROUTER_MODEL if config.SELECTED_OPENROUTER_MODEL in model_list else model_list[0]
-                                status = True
-                            else:
-                                auth_key_invalid = True
-                    case "LMStudio":
-                        if config.LMSTUDIO_URL is not None:
-                            if model.authenticationTranslatorLMStudio(base_url=config.LMSTUDIO_URL) is True:
-                                model_list = model.getTranslatorLMStudioModelList()
-                                if len(model_list) > 0:
-                                    selected_model = config.SELECTED_LMSTUDIO_MODEL if config.SELECTED_LMSTUDIO_MODEL in model_list else model_list[0]
-                                    status = True
-                    case "Ollama":
-                        if model.authenticationTranslatorOllama() is True:
-                            model_list = model.getTranslatorOllamaModelList()
-                            if len(model_list) > 0:
-                                selected_model = config.SELECTED_OLLAMA_MODEL if config.SELECTED_OLLAMA_MODEL in model_list else model_list[0]
-                                status = True
-                    case _:
-                        status = connected_network is True
-            except Exception as e:
-                printLog(f"Error checking engine {engine}: {str(e)}")
-                errorLogging()
-                status = False
-
-            return engine, status, auth_key_invalid, model_list, selected_model
-
-        engine_results = {}
-        engines_to_check = list(config.SELECTABLE_TRANSLATION_ENGINE_LIST)
-
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            future_to_engine = {executor.submit(check_translation_engine, engine): engine 
-                              for engine in engines_to_check}
-
-            for future in as_completed(future_to_engine):
-                engine, status, auth_key_invalid, model_list, selected_model = future.result()
-                engine_results[engine] = (status, auth_key_invalid, model_list, selected_model)
-
-        # 結果を順番に適用（メインスレッドで実行）
-        for engine in engines_to_check:
-            if engine not in engine_results:
-                continue
-
-            status, auth_key_invalid, model_list, selected_model = engine_results[engine]
-
-            # ログ出力
-            printLog(f"Start check {engine}")
-
-            # ステータス設定
-            config.SELECTABLE_TRANSLATION_ENGINE_STATUS[engine] = status
-
-            # 認証キー無効化
-            if auth_key_invalid:
-                auth_keys = config.AUTH_KEYS
-                auth_keys[engine] = None
-                config.AUTH_KEYS = auth_keys
-                printLog(f"{engine} auth key is invalid")
-            elif status:
-                printLog(f"{engine} is valid/available")
-
-            if engine == "LMStudio" and not status:
-                config.SELECTABLE_LMSTUDIO_MODEL_LIST = []
-                config.SELECTED_LMSTUDIO_MODEL = None
-            if engine == "Ollama" and not status:
-                config.SELECTABLE_OLLAMA_MODEL_LIST = []
-                config.SELECTED_OLLAMA_MODEL = None
-
-            # モデルリストと選択モデルの設定
-            if model_list is not None and status:
-                match engine:
-                    case "Plamo_API":
-                        config.SELECTABLE_PLAMO_MODEL_LIST = model_list
-                        config.SELECTED_PLAMO_MODEL = selected_model
-                        model.setTranslatorPlamoModel(selected_model)
-                        model.updateTranslatorPlamoClient()
-                    case "Gemini_API":
-                        config.SELECTABLE_GEMINI_MODEL_LIST = model_list
-                        config.SELECTED_GEMINI_MODEL = selected_model
-                        model.setTranslatorGeminiModel(selected_model)
-                        model.updateTranslatorGeminiClient()
-                    case "OpenAI_API":
-                        config.SELECTABLE_OPENAI_MODEL_LIST = model_list
-                        config.SELECTED_OPENAI_MODEL = selected_model
-                        model.setTranslatorOpenAIModel(selected_model)
-                        model.updateTranslatorOpenAIClient()
-                    case "Groq_API":
-                        config.SELECTABLE_GROQ_MODEL_LIST = model_list
-                        config.SELECTED_GROQ_MODEL = selected_model
-                        model.setTranslatorGroqModel(selected_model)
-                        model.updateTranslatorGroqClient()
-                    case "OpenRouter_API":
-                        config.SELECTABLE_OPENROUTER_MODEL_LIST = model_list
-                        config.SELECTED_OPENROUTER_MODEL = selected_model
-                        model.setTranslatorOpenRouterModel(selected_model)
-                        model.updateTranslatorOpenRouterClient()
-                    case "LMStudio":
-                        config.SELECTABLE_LMSTUDIO_MODEL_LIST = model_list
-                        config.SELECTED_LMSTUDIO_MODEL = selected_model
-                        model.setTranslatorLMStudioModel(selected_model)
-                        model.updateTranslatorLMStudioClient()
-                    case "Ollama":
-                        config.SELECTABLE_OLLAMA_MODEL_LIST = model_list
-                        config.SELECTED_OLLAMA_MODEL = selected_model
-                        model.setTranslatorOllamaModel(selected_model)
-                        model.updateTranslatorOllamaClient()
-
-            printLog(f"{engine} check completed")
-
-        printLog("Translation Engine Status Init completed")
+        # Trust saved config for API engines; set CTranslate2/Whisper from file check
+        # API engines with saved auth keys are assumed valid; background thread will verify
+        printLog("Init Translation Engine Status (fast)")
+        for engine in config.SELECTABLE_TRANSLATION_ENGINE_LIST:
+            match engine:
+                case "CTranslate2":
+                    config.SELECTABLE_TRANSLATION_ENGINE_STATUS[engine] = ctranslate2_available
+                case _:
+                    # Trust saved auth keys / URLs — assume available if configured
+                    if engine in config.AUTH_KEYS and config.AUTH_KEYS.get(engine) is not None:
+                        config.SELECTABLE_TRANSLATION_ENGINE_STATUS[engine] = True
+                    elif engine == "LMStudio" and config.LMSTUDIO_URL is not None:
+                        config.SELECTABLE_TRANSLATION_ENGINE_STATUS[engine] = True
+                    elif engine == "Ollama":
+                        config.SELECTABLE_TRANSLATION_ENGINE_STATUS[engine] = True
+                    elif engine.startswith("Custom_OpenAI_API"):
+                        config.SELECTABLE_TRANSLATION_ENGINE_STATUS[engine] = True
+                    else:
+                        config.SELECTABLE_TRANSLATION_ENGINE_STATUS[engine] = False
 
         # Init Transcription Engine Status
         for engine in config.SELECTABLE_TRANSCRIPTION_ENGINE_LIST:
             match engine:
                 case "Whisper":
-                    # キャッシュされた結果を使用（重複チェックを回避）
-                    config.SELECTABLE_TRANSCRIPTION_ENGINE_STATUS[engine] = self._whisper_available_cache
+                    config.SELECTABLE_TRANSCRIPTION_ENGINE_STATUS[engine] = whisper_available
                 case _:
-                    if connected_network is True:
-                        config.SELECTABLE_TRANSCRIPTION_ENGINE_STATUS[engine] = True
-                    else:
-                        config.SELECTABLE_TRANSCRIPTION_ENGINE_STATUS[engine] = False
+                    config.SELECTABLE_TRANSCRIPTION_ENGINE_STATUS[engine] = True
+
         self.initializationProgress(2)
 
-        # Set Translation Engine
+        # Set Translation Engine (fast — uses cached file check results)
         printLog("Set Translation Engine")
-        self.updateDownloadedCTranslate2ModelWeight()
+        # Only set the selected weight type from cache; skip enumerating all types
+        config.SELECTABLE_CTRANSLATE2_WEIGHT_TYPE_DICT[config.CTRANSLATE2_WEIGHT_TYPE] = ctranslate2_available
         self.updateTranslationEngineAndEngineList()
 
         # Set Transcription Engine
         printLog("Set Transcription Engine")
-        self.updateDownloadedWhisperModelWeight()
+        config.SELECTABLE_WHISPER_WEIGHT_TYPE_DICT[config.WHISPER_WEIGHT_TYPE] = whisper_available
         self.updateTranscriptionEngine()
-
-        # Set Transliteration
-        printLog("Set Transliteration")
-        if config.CONVERT_MESSAGE_TO_ROMAJI is True or config.CONVERT_MESSAGE_TO_HIRAGANA is True:
-            model.startTransliteration()
 
         self.initializationProgress(3)
 
         # Set Word Filter
         printLog("Set Word Filter")
         model.addKeywords()
-
-        # Check Software Updated (Background)
-        printLog("Check Software Updated (Background)")
-
-        def check_software_updated_background():
-            """ソフトウェア更新チェックをバックグラウンドで実行"""
-            try:
-                self.checkSoftwareUpdated()
-                printLog("[Background] Software update check completed")
-            except Exception:
-                errorLogging()
-                printLog("[Background] Software update check failed")
-
-        bg_thread = Thread(target=check_software_updated_background)
-        bg_thread.daemon = True
-        bg_thread.start()
 
         # Init Logger
         printLog("Init Logger")
@@ -3941,11 +3723,10 @@ class Controller:
 
         self.initializationProgress(4)
 
-        # Init OSC Receive (Background)
+        # Init OSC Receive (Background) — kept for VRChat connectivity
         printLog("Init OSC Receive (Background)")
 
         def init_osc_receive_background():
-            """OSC Receiveの初期化をバックグラウンドで実行"""
             try:
                 model.startReceiveOSC()
                 osc_query_enabled = model.getIsOscQueryEnabled()
@@ -3954,7 +3735,6 @@ class Controller:
                     if config.VRC_MIC_MUTE_SYNC is True:
                         self.setEnableVrcMicMuteSync()
                 else:
-                    # OSC Query is disabled, so disable VRC some features
                     mute_sync_info_flag = False
                     if config.VRC_MIC_MUTE_SYNC is True:
                         self.setDisableVrcMicMuteSync()
@@ -4000,14 +3780,207 @@ class Controller:
         printLog("Revalidate Selected Models")
         config.revalidate_selected_models()
 
-        # telemetry Init
-        printLog("Telemetry Init")
-        if config.ENABLE_TELEMETRY is True:
-            model.telemetryInit(enabled=config.ENABLE_TELEMETRY, app_version=config.VERSION)
-
         # Update Settings
         printLog("Update settings")
         self.updateConfigSettings()
 
         printLog("End Initialization")
         self.startWatchdog()
+
+        # === Deferred background tasks (after UI is responsive) ===
+        def deferred_background_init():
+            try:
+                # 1. Actual network connectivity check
+                actual_connected = isConnectedNetwork()
+                printLog(f"[Background] Network check: {actual_connected}")
+                if not actual_connected:
+                    self.disconnectedNetwork()
+                    # Update engine statuses for network-dependent engines
+                    for engine in config.SELECTABLE_TRANSLATION_ENGINE_LIST:
+                        if engine not in ("CTranslate2", "LMStudio", "Ollama") and \
+                           not engine.startswith("Custom_OpenAI_API"):
+                            config.SELECTABLE_TRANSLATION_ENGINE_STATUS[engine] = False
+                    for engine in config.SELECTABLE_TRANSCRIPTION_ENGINE_LIST:
+                        if engine != "Whisper":
+                            config.SELECTABLE_TRANSCRIPTION_ENGINE_STATUS[engine] = False
+
+                # 2. Verify API engines in background (validate auth keys, fetch model lists)
+                self._verifyEnginesBackground(actual_connected)
+
+                # 3. Enumerate non-default weight types
+                self._enumerateWeightsBackground()
+
+                # 4. Transliteration (if enabled)
+                if config.CONVERT_MESSAGE_TO_ROMAJI is True or config.CONVERT_MESSAGE_TO_HIRAGANA is True:
+                    model.startTransliteration()
+                    printLog("[Background] Transliteration loaded")
+
+                printLog("[Background] Deferred init completed")
+            except Exception:
+                errorLogging()
+                printLog("[Background] Deferred init failed")
+
+        bg_deferred = Thread(target=deferred_background_init)
+        bg_deferred.daemon = True
+        bg_deferred.start()
+
+    def _verifyEnginesBackground(self, connected_network: bool) -> None:
+        """Background verification of translation engine auth keys and model lists."""
+
+        def check_engine(engine: str) -> tuple:
+            status = False
+            auth_key_invalid = False
+            model_list = None
+            selected_model = None
+            try:
+                match engine:
+                    case "CTranslate2":
+                        status = self._ctranslate2_available_cache
+                    case "DeepL_API":
+                        if config.AUTH_KEYS.get(engine) is None:
+                            status = False
+                        elif model.authenticationTranslatorDeepLAuthKey(auth_key=config.AUTH_KEYS[engine]):
+                            status = True
+                        else:
+                            auth_key_invalid = True
+                    case "Plamo_API":
+                        if config.AUTH_KEYS.get(engine) is None:
+                            status = False
+                        elif model.authenticationTranslatorPlamoAuthKey(auth_key=config.AUTH_KEYS[engine]):
+                            model_list = model.getTranslatorPlamoModelList()
+                            selected_model = config.SELECTED_PLAMO_MODEL if config.SELECTED_PLAMO_MODEL in model_list else model_list[0]
+                            status = True
+                        else:
+                            auth_key_invalid = True
+                    case "Gemini_API":
+                        if config.AUTH_KEYS.get(engine) is None:
+                            status = False
+                        elif model.authenticationTranslatorGeminiAuthKey(auth_key=config.AUTH_KEYS[engine]):
+                            model_list = model.getTranslatorGeminiModelList()
+                            selected_model = config.SELECTED_GEMINI_MODEL if config.SELECTED_GEMINI_MODEL in model_list else model_list[0]
+                            status = True
+                        else:
+                            auth_key_invalid = True
+                    case "OpenAI_API":
+                        if config.AUTH_KEYS.get(engine) is None:
+                            status = False
+                        elif model.authenticationTranslatorOpenAIAuthKey(auth_key=config.AUTH_KEYS[engine]):
+                            model_list = model.getTranslatorOpenAIModelList()
+                            selected_model = config.SELECTED_OPENAI_MODEL if config.SELECTED_OPENAI_MODEL in model_list else model_list[0]
+                            status = True
+                        else:
+                            auth_key_invalid = True
+                    case "Groq_API":
+                        if config.AUTH_KEYS.get(engine) is None:
+                            status = False
+                        elif model.authenticationTranslatorGroqAuthKey(auth_key=config.AUTH_KEYS[engine]):
+                            model_list = model.getTranslatorGroqModelList()
+                            selected_model = config.SELECTED_GROQ_MODEL if config.SELECTED_GROQ_MODEL in model_list else model_list[0]
+                            status = True
+                        else:
+                            auth_key_invalid = True
+                    case "OpenRouter_API":
+                        if config.AUTH_KEYS.get(engine) is None:
+                            status = False
+                        elif model.authenticationTranslatorOpenRouterAuthKey(auth_key=config.AUTH_KEYS[engine]):
+                            model_list = model.getTranslatorOpenRouterModelList()
+                            selected_model = config.SELECTED_OPENROUTER_MODEL if config.SELECTED_OPENROUTER_MODEL in model_list else model_list[0]
+                            status = True
+                        else:
+                            auth_key_invalid = True
+                    case "LMStudio":
+                        if config.LMSTUDIO_URL is not None and model.authenticationTranslatorLMStudio(base_url=config.LMSTUDIO_URL):
+                            model_list = model.getTranslatorLMStudioModelList()
+                            if len(model_list) > 0:
+                                selected_model = config.SELECTED_LMSTUDIO_MODEL if config.SELECTED_LMSTUDIO_MODEL in model_list else model_list[0]
+                                status = True
+                    case "Ollama":
+                        if model.authenticationTranslatorOllama():
+                            model_list = model.getTranslatorOllamaModelList()
+                            if len(model_list) > 0:
+                                selected_model = config.SELECTED_OLLAMA_MODEL if config.SELECTED_OLLAMA_MODEL in model_list else model_list[0]
+                                status = True
+                    case _:
+                        status = connected_network is True
+            except Exception as e:
+                printLog(f"[Background] Error checking engine {engine}: {str(e)}")
+                errorLogging()
+            return engine, status, auth_key_invalid, model_list, selected_model
+
+        engines_to_check = list(config.SELECTABLE_TRANSLATION_ENGINE_LIST)
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = {executor.submit(check_engine, e): e for e in engines_to_check}
+            for future in as_completed(futures):
+                engine, status, auth_key_invalid, model_list, selected_model = future.result()
+                config.SELECTABLE_TRANSLATION_ENGINE_STATUS[engine] = status
+
+                if auth_key_invalid:
+                    auth_keys = config.AUTH_KEYS
+                    auth_keys[engine] = None
+                    config.AUTH_KEYS = auth_keys
+                    printLog(f"[Background] {engine} auth key is invalid")
+
+                if engine == "LMStudio" and not status:
+                    config.SELECTABLE_LMSTUDIO_MODEL_LIST = []
+                    config.SELECTED_LMSTUDIO_MODEL = None
+                if engine == "Ollama" and not status:
+                    config.SELECTABLE_OLLAMA_MODEL_LIST = []
+                    config.SELECTED_OLLAMA_MODEL = None
+
+                if model_list is not None and status:
+                    match engine:
+                        case "Plamo_API":
+                            config.SELECTABLE_PLAMO_MODEL_LIST = model_list
+                            config.SELECTED_PLAMO_MODEL = selected_model
+                            model.setTranslatorPlamoModel(selected_model)
+                            model.updateTranslatorPlamoClient()
+                        case "Gemini_API":
+                            config.SELECTABLE_GEMINI_MODEL_LIST = model_list
+                            config.SELECTED_GEMINI_MODEL = selected_model
+                            model.setTranslatorGeminiModel(selected_model)
+                            model.updateTranslatorGeminiClient()
+                        case "OpenAI_API":
+                            config.SELECTABLE_OPENAI_MODEL_LIST = model_list
+                            config.SELECTED_OPENAI_MODEL = selected_model
+                            model.setTranslatorOpenAIModel(selected_model)
+                            model.updateTranslatorOpenAIClient()
+                        case "Groq_API":
+                            config.SELECTABLE_GROQ_MODEL_LIST = model_list
+                            config.SELECTED_GROQ_MODEL = selected_model
+                            model.setTranslatorGroqModel(selected_model)
+                            model.updateTranslatorGroqClient()
+                        case "OpenRouter_API":
+                            config.SELECTABLE_OPENROUTER_MODEL_LIST = model_list
+                            config.SELECTED_OPENROUTER_MODEL = selected_model
+                            model.setTranslatorOpenRouterModel(selected_model)
+                            model.updateTranslatorOpenRouterClient()
+                        case "LMStudio":
+                            config.SELECTABLE_LMSTUDIO_MODEL_LIST = model_list
+                            config.SELECTED_LMSTUDIO_MODEL = selected_model
+                            model.setTranslatorLMStudioModel(selected_model)
+                            model.updateTranslatorLMStudioClient()
+                        case "Ollama":
+                            config.SELECTABLE_OLLAMA_MODEL_LIST = model_list
+                            config.SELECTED_OLLAMA_MODEL = selected_model
+                            model.setTranslatorOllamaModel(selected_model)
+                            model.updateTranslatorOllamaClient()
+
+                printLog(f"[Background] {engine} verified: {status}")
+
+        # Update frontend with verified results
+        self.updateTranslationEngineAndEngineList()
+        printLog("[Background] Engine verification completed")
+
+    def _enumerateWeightsBackground(self) -> None:
+        """Background enumeration of all non-default weight types."""
+        for weight_type in config.SELECTABLE_CTRANSLATE2_WEIGHT_TYPE_DICT.keys():
+            if weight_type == config.CTRANSLATE2_WEIGHT_TYPE:
+                continue
+            config.SELECTABLE_CTRANSLATE2_WEIGHT_TYPE_DICT[weight_type] = model.checkTranslatorCTranslate2ModelWeight(weight_type)
+
+        for weight_type in config.SELECTABLE_WHISPER_WEIGHT_TYPE_DICT.keys():
+            if weight_type == config.WHISPER_WEIGHT_TYPE:
+                continue
+            config.SELECTABLE_WHISPER_WEIGHT_TYPE_DICT[weight_type] = model.checkTranscriptionWhisperModelWeight(weight_type)
+
+        printLog("[Background] Weight enumeration completed")
