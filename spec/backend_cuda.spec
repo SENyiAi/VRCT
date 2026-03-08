@@ -12,15 +12,26 @@ a = Analysis(
         ('./../.venv_cuda/Lib/site-packages/zeroconf', 'zeroconf/'),
         ('./../.venv_cuda/Lib/site-packages/openvr', 'openvr/'),
         ('./../.venv_cuda/Lib/site-packages/faster_whisper', 'faster_whisper/'),
-        ('./../.venv/Lib/site-packages/hf_xet', 'hf_xet/')
+        ('./../.venv_cuda/Lib/site-packages/hf_xet', 'hf_xet/')
         ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['pandas', 'matplotlib', 'PyQt5'],
+    excludes=[
+        'pandas', 'matplotlib', 'PyQt5',
+        # torch submodules not needed for inference
+        'torch.distributed', 'torch.testing', 'torch.onnx',
+        'torch.fx', 'torch.ao', 'torch.profiler',
+        'torch.utils.benchmark', 'torch.utils.tensorboard',
+        'torch.hub',
+        # deprecated stdlib modules causing warnings
+        'audioop', 'aifc',
+        # other unused heavy packages
+        'IPython', 'PIL.ImageQt', 'tkinter', 'wx',
+    ],
     noarchive=False,
-    optimize=0,
+    optimize=1,
 )
 pyz = PYZ(a.pure)
 
@@ -33,7 +44,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,  # UPX on CUDA DLLs takes 20-30min with minimal gain
     console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
@@ -47,7 +58,7 @@ coll = COLLECT(
     a.binaries,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,  # UPX on CUDA DLLs takes 20-30min with minimal gain
     upx_exclude=[],
     name='.',
 )

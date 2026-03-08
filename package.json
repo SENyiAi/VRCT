@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "setup-python": "bat\\install.bat",
+    "setup-python-cpu": "bat\\install_cpu.bat",
+    "setup-python-cuda": "bat\\install_cuda.bat",
     "build-python": "bat\\build.bat",
     "build-python-cuda": "bat\\build_cuda.bat",
     "vite": "vite",

@@ -18,9 +18,17 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['pandas', 'matplotlib', 'PyQt5'],
+    excludes=[
+        'pandas', 'matplotlib', 'PyQt5',
+        'torch.distributed', 'torch.testing', 'torch.onnx',
+        'torch.fx', 'torch.ao', 'torch.profiler',
+        'torch.utils.benchmark', 'torch.utils.tensorboard',
+        'torch.hub',
+        'audioop', 'aifc',
+        'IPython', 'PIL.ImageQt', 'tkinter', 'wx',
+    ],
     noarchive=False,
-    optimize=0,
+    optimize=1,
 )
 pyz = PYZ(a.pure)
 
