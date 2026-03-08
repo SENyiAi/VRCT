@@ -3655,6 +3655,10 @@ class Controller:
         current_engine = config.SELECTED_TRANSCRIPTION_ENGINE
         selected_engines = [key for key, value in config.SELECTABLE_TRANSCRIPTION_ENGINE_STATUS.items() if value is True]
 
+        # WebView is always valid (local browser API)
+        if current_engine == "WebView":
+            return
+
         # 選択可能なエンジンがなければ、Whisper に変更
         if current_engine in {"Whisper", "Google"}:
             if current_engine not in selected_engines:
@@ -4045,7 +4049,7 @@ class Controller:
                            not engine.startswith("Custom_OpenAI_API"):
                             config.SELECTABLE_TRANSLATION_ENGINE_STATUS[engine] = False
                     for engine in config.SELECTABLE_TRANSCRIPTION_ENGINE_LIST:
-                        if engine != "Whisper":
+                        if engine not in ("Whisper", "WebView"):
                             config.SELECTABLE_TRANSCRIPTION_ENGINE_STATUS[engine] = False
 
                 # 2. Verify API engines in background (validate auth keys, fetch model lists)

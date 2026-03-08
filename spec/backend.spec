@@ -36,7 +36,18 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['pandas', 'matplotlib', 'PyQt5'],
+    excludes=[
+        'pandas', 'matplotlib', 'PyQt5',
+        # torch submodules not needed by VRCT — excluding them cuts ~10min from Analysis
+        'torch.distributed', 'torch.testing', 'torch.utils.tensorboard',
+        'torch.utils.benchmark', 'torch.utils.bottleneck',
+        'torch.ao', 'torch.onnx', 'torch.optim', 'torch.autograd',
+        'torch.jit', 'torch.fx', 'torch.export', 'torch.compiler',
+        'torch.profiler', 'torch.sparse', 'torch.nested',
+        'torch.package', 'torch.hub', 'torch.nn.parallel',
+        'torch._dynamo', 'torch._inductor', 'torch._functorch',
+        'torch.multiprocessing',
+    ],
     noarchive=False,
     optimize=0,
 )
