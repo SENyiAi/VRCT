@@ -1,10 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_all
 
+# charset_normalizer has C extensions that hiddenimports alone won't bundle.
+# collect_all ensures .pyd/.dll files, data files, and submodules are all included.
+_cn_datas, _cn_binaries, _cn_hiddenimports = collect_all('charset_normalizer')
+_cd_datas, _cd_binaries, _cd_hiddenimports = collect_all('chardet')
 
 a = Analysis(
     ['..\\src-python\\mainloop.py'],
     pathex=[],
-    binaries=[],
+    binaries=[] + _cn_binaries + _cd_binaries,
     datas=[
         ('./../src-python/models/overlay/fonts', 'fonts/'),
         ('./../src-python/models/translation/translation_settings/prompt', 'translation_settings/prompt/'),
@@ -13,7 +18,7 @@ a = Analysis(
         ('./../.venv/Lib/site-packages/openvr', 'openvr/'),
         ('./../.venv/Lib/site-packages/faster_whisper', 'faster_whisper/'),
         ('./../.venv/Lib/site-packages/hf_xet', 'hf_xet/')
-        ],
+        ] + _cn_datas + _cd_datas,
     hiddenimports=[
         'charset_normalizer', 'chardet',
         'requests', 'urllib3', 'certifi', 'idna',
@@ -27,7 +32,7 @@ a = Analysis(
         'websockets', 'websockets.legacy', 'websockets.legacy.server',
         'sudachipy', 'sudachidict_core', 'sudachidict_full',
         'comtypes', 'pyautogui',
-    ],
+    ] + _cn_hiddenimports + _cd_hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

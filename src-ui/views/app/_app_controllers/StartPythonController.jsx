@@ -48,6 +48,23 @@ const useStartPython = () => {
             }
         });
         command.stderr.on("data", line => {
+            // Python warnings (e.g. DeprecationWarning, RequestsDependencyWarning)
+            // are written to stderr but are NOT fatal errors.  Only show a UI
+            // notification for genuine errors.
+            if (
+                typeof line === "string" && (
+                    line.includes("Warning:") ||
+                    line.includes("DeprecationWarning") ||
+                    line.includes("FutureWarning") ||
+                    line.includes("UserWarning") ||
+                    line.includes("RuntimeWarning") ||
+                    line.includes("ResourceWarning") ||
+                    line.trim() === ""
+                )
+            ) {
+                console.warn("stderr (warning, suppressed):", line);
+                return;
+            }
             showNotification_Error(
                 `An error occurred. Please restart VRCT or contact the developers. The last line:${JSON.stringify(line)}`, { hide_duration: null }
             );
