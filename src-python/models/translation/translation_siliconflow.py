@@ -1,6 +1,9 @@
 from openai import OpenAI
 from langchain_openai import ChatOpenAI
 from pydantic import SecretStr
+import re
+import logging
+import time
 
 try:
     from .translation_languages import translation_lang
@@ -12,6 +15,28 @@ except Exception:
     from translation_languages import translation_lang, loadTranslationLanguages
     from translation_utils import loadTranslatePromptConfig
     translation_lang = loadTranslationLanguages(path=".", force=True)
+
+sf_logger = logging.getLogger("siliconflow")
+sf_logger.setLevel(logging.DEBUG)
+
+def _setup_sf_logger(log_dir: str = None):
+    """Set up file handler for SiliconFlow logger if not already configured."""
+    if sf_logger.handlers:
+        return
+    try:
+        import os
+        if log_dir:
+            os.makedirs(log_dir, exist_ok=True)
+            log_path = os.path.join(log_dir, "siliconflow.log")
+        else:
+            log_path = "siliconflow.log"
+        handler = logging.FileHandler(log_path, encoding="utf-8")
+        handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        sf_logger.addHandler(handler)
+    except Exception:
+        pass
 
 def _authentication_check(api_key: str) -> bool:
     try:
@@ -71,6 +96,13 @@ class SiliconFlowClient:
         self.model = None
         self.base_url = "https://api.siliconflow.cn/v1"
 
+        # Set up logging
+        log_dir = None
+        if root_path:
+            import os
+            log_dir = os.path.join(root_path, "logs")
+        _setup_sf_logger(log_dir)
+
         # Model parameters
         self.enable_asr_correction = False
         self.enable_thinking = False
@@ -91,6 +123,7 @@ class SiliconFlowClient:
             "item_template": "[{source}] {role}: {text}",
         })
         self._context_history: list[dict] = []
+        self.last_corrected_source: str = ""
 
         self.siliconflow_llm = None
 
@@ -104,6 +137,9 @@ class SiliconFlowClient:
         result = _authentication_check(api_key)
         if result:
             self.api_key = api_key
+            sf_logger.info(f"[SiliconFlow] Auth successful, key=...{api_key[-6:]}")
+        else:
+            sf_logger.warning(f"[SiliconFlow] Auth failed")
         return result
 
     def getModel(self) -> str:
@@ -131,11 +167,13 @@ class SiliconFlowClient:
             temperature=self.temperature,
             model_kwargs=extra_kwargs,
         )
+        sf_logger.info(f"[SiliconFlow] Client updated: model={self.model} thinking={self.enable_thinking} asr_correction={self.enable_asr_correction} temp={self.temperature} max_tokens={self.max_tokens} top_p={extra_kwargs.get('top_p')}")
 
     def setContextHistory(self, history_items: list[dict]) -> None:
         self._context_history = history_items or []
 
     def translate(self, text: str, input_lang: str, output_lang: str) -> str:
+        self.last_corrected_source = ""
         if self.custom_system_prompt:
             template = self.custom_system_prompt
         elif self.enable_asr_correction:
@@ -187,7 +225,14 @@ class SiliconFlowClient:
             {"role": "user", "content": text},
         ]
 
+        sf_logger.info(f"[SiliconFlow Request] model={self.model} thinking={self.enable_thinking} asr_correction={self.enable_asr_correction} temp={self.temperature} max_tokens={self.max_tokens}")
+        sf_logger.debug(f"[SiliconFlow Prompt] system={system_prompt[:200]}...")
+        sf_logger.debug(f"[SiliconFlow Input] text={text}")
+
+        start_time = time.time()
         resp = self.siliconflow_llm.invoke(messages)
+        elapsed = time.time() - start_time
+
         content = ""
         if isinstance(resp.content, str):
             content = resp.content
@@ -197,7 +242,31 @@ class SiliconFlowClient:
                     content += part
                 elif isinstance(part, dict) and "content" in part and isinstance(part["content"], str):
                     content += part["content"]
-        return content.strip()
+        content = content.strip()
+
+        sf_logger.info(f"[SiliconFlow Response] elapsed={elapsed:.2f}s len={len(content)}")
+        sf_logger.debug(f"[SiliconFlow Output Raw] content={content[:500]}")
+
+        # Strip <think>...</think> tags (reasoning tokens from thinking models like DeepSeek-R1)
+        think_match = re.search(r'<think>(.*?)</think>', content, re.DOTALL)
+        if think_match:
+            sf_logger.debug(f"[SiliconFlow Think] thinking={think_match.group(1).strip()[:300]}")
+            content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
+            sf_logger.info(f"[SiliconFlow] Stripped thinking tags, remaining len={len(content)}")
+
+        # Parse ASR correction structured output
+        if self.enable_asr_correction and not self.custom_system_prompt:
+            corrected_match = re.search(r'\[corrected\](.*?)\[/corrected\]', content, re.DOTALL)
+            translated_match = re.search(r'\[translated\](.*?)\[/translated\]', content, re.DOTALL)
+            if corrected_match and translated_match:
+                self.last_corrected_source = corrected_match.group(1).strip()
+                content = translated_match.group(1).strip()
+                sf_logger.info(f"[SiliconFlow ASR] corrected_source={self.last_corrected_source}")
+            else:
+                sf_logger.warning(f"[SiliconFlow ASR] Failed to parse structured output, using raw content")
+
+        sf_logger.debug(f"[SiliconFlow Final] content={content[:300]}")
+        return content
 
 if __name__ == "__main__":
     AUTH_KEY = "SILICONFLOW_API_KEY"

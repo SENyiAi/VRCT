@@ -23,7 +23,9 @@ system_prompt_asr_correction: |
   - 技术术语使用通用译法
 
   【输出要求】
-  仅按照格式输出最终翻译结果，不要输出纠错过程、解释或任何额外内容。
+  严格按照以下格式输出两行，不要输出其他任何内容：
+  [corrected]纠错后的{input_lang}原文[/corrected]
+  [translated]翻译后的{output_lang}文本[/translated]
 
   Supported languages: {supported_languages}
 

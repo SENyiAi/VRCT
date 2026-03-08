@@ -444,6 +444,9 @@ class Model:
     def setTranslatorSiliconFlowCustomSystemPrompt(self, value: str) -> None:
         self.translator.setSiliconFlowCustomSystemPrompt(value)
 
+    def getTranslatorSiliconFlowLastCorrectedSource(self) -> str:
+        return self.translator.getSiliconFlowLastCorrectedSource()
+
     def getTranslatorLMStudioConnected(self) -> bool:
         self.ensure_initialized()
         return self.translator.getLMStudioConnected()

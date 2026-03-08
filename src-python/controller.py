@@ -314,7 +314,10 @@ class Controller:
                             },
                         )
                     else:
-                        pass
+                        # Replace message with ASR-corrected source text if available
+                        corrected = model.getTranslatorSiliconFlowLastCorrectedSource()
+                        if corrected:
+                            message = corrected
                 except Exception as e:
                     # VRAM不足エラーの検出
                     is_vram_error, error_message = model.detectVRAMError(e)
@@ -2692,30 +2695,54 @@ class Controller:
         return {"status":200, "result":config.SILICONFLOW_ENABLE_ASR_CORRECTION}
 
     def setEnableSiliconFlowAsrCorrection(self, *args, **kwargs) -> dict:
-        config.SILICONFLOW_ENABLE_ASR_CORRECTION = True
-        model.setTranslatorSiliconFlowAsrCorrection(True)
-        return {"status":200, "result":config.SILICONFLOW_ENABLE_ASR_CORRECTION}
+        printLog("setEnableSiliconFlowAsrCorrection called, before:", config.SILICONFLOW_ENABLE_ASR_CORRECTION)
+        try:
+            config.SILICONFLOW_ENABLE_ASR_CORRECTION = True
+            model.setTranslatorSiliconFlowAsrCorrection(True)
+        except Exception:
+            errorLogging()
+        resp = {"status":200, "result":config.SILICONFLOW_ENABLE_ASR_CORRECTION}
+        printLog("setEnableSiliconFlowAsrCorrection response:", resp)
+        return resp
 
     def setDisableSiliconFlowAsrCorrection(self, *args, **kwargs) -> dict:
-        config.SILICONFLOW_ENABLE_ASR_CORRECTION = False
-        model.setTranslatorSiliconFlowAsrCorrection(False)
-        return {"status":200, "result":config.SILICONFLOW_ENABLE_ASR_CORRECTION}
+        printLog("setDisableSiliconFlowAsrCorrection called, before:", config.SILICONFLOW_ENABLE_ASR_CORRECTION)
+        try:
+            config.SILICONFLOW_ENABLE_ASR_CORRECTION = False
+            model.setTranslatorSiliconFlowAsrCorrection(False)
+        except Exception:
+            errorLogging()
+        resp = {"status":200, "result":config.SILICONFLOW_ENABLE_ASR_CORRECTION}
+        printLog("setDisableSiliconFlowAsrCorrection response:", resp)
+        return resp
 
     @staticmethod
     def getSiliconFlowEnableThinking(*args, **kwargs) -> dict:
         return {"status":200, "result":config.SILICONFLOW_ENABLE_THINKING}
 
     def setEnableSiliconFlowEnableThinking(self, *args, **kwargs) -> dict:
-        config.SILICONFLOW_ENABLE_THINKING = True
-        model.setTranslatorSiliconFlowEnableThinking(True)
-        model.updateTranslatorSiliconFlowClient()
-        return {"status":200, "result":config.SILICONFLOW_ENABLE_THINKING}
+        printLog("setEnableSiliconFlowEnableThinking called, before:", config.SILICONFLOW_ENABLE_THINKING)
+        try:
+            config.SILICONFLOW_ENABLE_THINKING = True
+            model.setTranslatorSiliconFlowEnableThinking(True)
+            model.updateTranslatorSiliconFlowClient()
+        except Exception:
+            errorLogging()
+        resp = {"status":200, "result":config.SILICONFLOW_ENABLE_THINKING}
+        printLog("setEnableSiliconFlowEnableThinking response:", resp)
+        return resp
 
     def setDisableSiliconFlowEnableThinking(self, *args, **kwargs) -> dict:
-        config.SILICONFLOW_ENABLE_THINKING = False
-        model.setTranslatorSiliconFlowEnableThinking(False)
-        model.updateTranslatorSiliconFlowClient()
-        return {"status":200, "result":config.SILICONFLOW_ENABLE_THINKING}
+        printLog("setDisableSiliconFlowEnableThinking called, before:", config.SILICONFLOW_ENABLE_THINKING)
+        try:
+            config.SILICONFLOW_ENABLE_THINKING = False
+            model.setTranslatorSiliconFlowEnableThinking(False)
+            model.updateTranslatorSiliconFlowClient()
+        except Exception:
+            errorLogging()
+        resp = {"status":200, "result":config.SILICONFLOW_ENABLE_THINKING}
+        printLog("setDisableSiliconFlowEnableThinking response:", resp)
+        return resp
 
     @staticmethod
     def getSiliconFlowMaxTokens(*args, **kwargs) -> dict:
