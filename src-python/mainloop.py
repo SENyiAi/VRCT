@@ -1,23 +1,4 @@
 import sys
-import os
-import warnings
-
-# ── CRITICAL: suppress ALL warnings before any other import ──
-# Python warnings (e.g. RequestsDependencyWarning from `requests`) are written
-# to stderr.  The Tauri frontend treats ANY stderr output as a fatal error and
-# shows it to the user.  We must silence warnings BEFORE `requests` (or any
-# transitive dependency) is imported.
-warnings.filterwarnings("ignore")
-
-# Redirect stderr to devnull to prevent ANY stray output from crashing the UI.
-# The Tauri frontend reads stderr and shows every line as "An error occurred".
-# All Python-side logging goes through stdout (printResponse / printLog).
-if not os.environ.get("VRCT_DEBUG"):
-    try:
-        sys.stderr = open(os.devnull, "w")
-    except Exception:
-        pass
-
 import json
 import time
 from typing import Any, Tuple

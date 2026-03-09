@@ -1,15 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
-from PyInstaller.utils.hooks import collect_all
 
-# charset_normalizer has C extensions that hiddenimports alone won't bundle.
-# collect_all ensures .pyd/.dll files, data files, and submodules are all included.
-_cn_datas, _cn_binaries, _cn_hiddenimports = collect_all('charset_normalizer')
-_cd_datas, _cd_binaries, _cd_hiddenimports = collect_all('chardet')
 
 a = Analysis(
     ['..\\src-python\\mainloop.py'],
     pathex=[],
-    binaries=[] + _cn_binaries + _cd_binaries,
+    binaries=[],
     datas=[
         ('./../src-python/models/overlay/fonts', 'fonts/'),
         ('./../src-python/models/translation/translation_settings/prompt', 'translation_settings/prompt/'),
@@ -18,40 +13,12 @@ a = Analysis(
         ('./../.venv/Lib/site-packages/openvr', 'openvr/'),
         ('./../.venv/Lib/site-packages/faster_whisper', 'faster_whisper/'),
         ('./../.venv/Lib/site-packages/hf_xet', 'hf_xet/')
-        ] + _cn_datas + _cd_datas,
-    hiddenimports=[
-        'charset_normalizer', 'chardet',
-        'requests', 'urllib3', 'certifi', 'idna',
-        'openai', 'openai._client', 'openai.resources', 'openai.types',
-        'httpx', 'httpx._transports', 'httpcore',
-        'pydantic', 'pydantic.deprecated', 'pydantic._internal',
-        'packaging', 'packaging.version', 'packaging.requirements',
-        'google.genai', 'google.genai._api_client',
-        'langchain_core', 'langchain_core.language_models',
-        'langchain_openai', 'langchain_google_genai', 'langchain_ollama',
-        'websockets', 'websockets.legacy', 'websockets.legacy.server',
-        'sudachipy', 'sudachidict_core', 'sudachidict_full',
-        'comtypes', 'pyautogui',
-    ] + _cn_hiddenimports + _cd_hiddenimports,
+        ],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[
-        'pandas', 'matplotlib', 'PyQt5', 'tkinter', 'unittest', 'pip',
-        # torch submodules not needed by VRCT — excluding them significantly
-        # reduces both Analysis time (10-15min) and output size (~100MB)
-        'torch.distributed', 'torch.testing', 'torch.utils.tensorboard',
-        'torch.utils.benchmark', 'torch.utils.bottleneck',
-        'torch.ao', 'torch.onnx', 'torch.optim', 'torch.autograd',
-        'torch.jit', 'torch.fx', 'torch.export', 'torch.compiler',
-        'torch.profiler', 'torch.sparse', 'torch.nested',
-        'torch.package', 'torch.hub', 'torch.nn.parallel',
-        'torch._dynamo', 'torch._inductor', 'torch._functorch',
-        'torch.multiprocessing',
-        # CUDA-specific (not needed in CPU build)
-        'torch.backends.cudnn',
-        'torch.cuda.amp', 'torch.cuda.profiler', 'torch.cuda.nvtx',
-    ],
+    excludes=['pandas', 'matplotlib', 'PyQt5'],
     noarchive=False,
     optimize=0,
 )
