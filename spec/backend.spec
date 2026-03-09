@@ -11,14 +11,12 @@ a = Analysis(
         ('./../src-python/models/translation/translation_settings/languages', 'translation_settings/languages/'),
         ('./../.venv/Lib/site-packages/zeroconf', 'zeroconf/'),
         ('./../.venv/Lib/site-packages/openvr', 'openvr/'),
-        ('./../.venv/Lib/site-packages/faster_whisper', 'faster_whisper/'),
-        ('./../.venv/Lib/site-packages/hf_xet', 'hf_xet/')
         ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['pandas', 'matplotlib', 'PyQt5'],
+    excludes=['pandas', 'matplotlib', 'PyQt5', 'torch', 'ctranslate2', 'transformers', 'faster_whisper', 'whisper', 'sentencepiece'],
     noarchive=False,
     optimize=0,
 )

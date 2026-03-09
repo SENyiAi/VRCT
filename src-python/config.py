@@ -5,14 +5,10 @@ from json import load as json_load
 from json import dump as json_dump
 import threading
 from typing import Optional, Dict, Any
-import torch
 
 # Guard optional, potentially heavy or platform-specific imports so importing
 # config.py doesn't raise in environments missing those packages.
-try:
-    from device_manager import device_manager
-except Exception:  # pragma: no cover - optional runtime
-    device_manager = None  # type: ignore
+device_manager = None
 
 try:
     from models.translation.translation_languages import translation_lang, loadTranslationLanguages
@@ -21,22 +17,11 @@ except Exception:  # pragma: no cover - optional runtime
     def loadTranslationLanguages(path: str, force: bool = False) -> Dict[str, Any]:
         return {}
 
-try:
-    from models.translation.translation_utils import ctranslate2_weights
-except Exception:  # pragma: no cover - optional runtime
-    ctranslate2_weights = {}  # type: ignore
 
-try:
-    from models.transcription.transcription_languages import transcription_lang
-except Exception:  # pragma: no cover - optional runtime
-    transcription_lang = {}  # type: ignore
+transcription_lang = {}
 
-try:
-    from models.transcription.transcription_whisper import _MODELS as whisper_models
-except Exception:  # pragma: no cover - optional runtime
-    whisper_models = {}  # type: ignore
 
-from utils import errorLogging, validateDictStructure, getComputeDeviceList
+from utils import errorLogging, validateDictStructure
 
 json_serializable_vars = {}
 def json_serializable(var_name):
@@ -350,14 +335,6 @@ def _main_window_geometry_validator(val, inst):
             new[key] = inst.MAIN_WINDOW_GEOMETRY[key]
     return new
 
-def _selected_transcription_compute_type_validator(val, inst):
-    if not isinstance(val, str):
-        return None
-    compute_types = inst.SELECTED_TRANSCRIPTION_COMPUTE_DEVICE.get("compute_types", [])
-    if val in compute_types:
-        return val
-    return None
-
 def _overlay_small_validator(val, inst):
     if not (isinstance(val, dict) and set(val.keys()) == set(inst.OVERLAY_SMALL_LOG_SETTINGS.keys())):
         return None
@@ -480,14 +457,6 @@ def _selected_target_languages_validator(val, inst):
                 new[k0][k1] = {"language": language, "country": country, "enable": enable}
     return new
 
-def _selected_translation_compute_type_validator(val, inst):
-    if not isinstance(val, str):
-        return None
-    compute_types = inst.SELECTED_TRANSLATION_COMPUTE_DEVICE.get("compute_types", [])
-    if val in compute_types:
-        return val
-    return None
-
 def _mic_host_validator(val, inst):
     if device_manager is None:
         return None
@@ -518,14 +487,6 @@ def _speaker_device_validator(val, inst):
         return val if val in names else None
     except Exception:
         return None
-
-def _compute_device_validator(val, inst):
-    if not isinstance(val, dict):
-        return None
-    for dev in inst.SELECTABLE_COMPUTE_DEVICE_LIST:
-        if dev == val:
-            return copy.deepcopy(val)
-    return None
 
 def _allowed_in_populated(list_attr_name: str):
     def _inner(value, inst):
@@ -608,13 +569,9 @@ class Config:
     WATCHDOG_INTERVAL = ManagedProperty('WATCHDOG_INTERVAL', readonly=True, serialize=False)
     SELECTABLE_TAB_NO_LIST = ManagedProperty('SELECTABLE_TAB_NO_LIST', readonly=True, serialize=False)
     SELECTED_TAB_TARGET_LANGUAGES_NO_LIST = ManagedProperty('SELECTED_TAB_TARGET_LANGUAGES_NO_LIST', readonly=True, serialize=False)
-    SELECTABLE_CTRANSLATE2_WEIGHT_TYPE_LIST = ManagedProperty('SELECTABLE_CTRANSLATE2_WEIGHT_TYPE_LIST', readonly=True, serialize=False)
-    SELECTABLE_WHISPER_WEIGHT_TYPE_LIST = ManagedProperty('SELECTABLE_WHISPER_WEIGHT_TYPE_LIST', readonly=True, serialize=False)
     SELECTABLE_TRANSLATION_ENGINE_LIST = ManagedProperty('SELECTABLE_TRANSLATION_ENGINE_LIST', readonly=True, serialize=False)
     SELECTABLE_TRANSCRIPTION_ENGINE_LIST = ManagedProperty('SELECTABLE_TRANSCRIPTION_ENGINE_LIST', readonly=True, serialize=False)
     SELECTABLE_UI_LANGUAGE_LIST = ManagedProperty('SELECTABLE_UI_LANGUAGE_LIST', readonly=True, serialize=False)
-    COMPUTE_MODE = ManagedProperty('COMPUTE_MODE', readonly=True, serialize=False)
-    SELECTABLE_COMPUTE_DEVICE_LIST = ManagedProperty('SELECTABLE_COMPUTE_DEVICE_LIST', readonly=True, serialize=False)
     SEND_MESSAGE_BUTTON_TYPE_LIST = ManagedProperty('SEND_MESSAGE_BUTTON_TYPE_LIST', readonly=True, serialize=False)
 
     # Read Write
@@ -628,19 +585,12 @@ class Config:
 
     # --- Selectable dict/list properties (managed by descriptor, not serialized) ---
     # These are dynamically generated in init_config() based on installed packages/APIs
-    SELECTABLE_CTRANSLATE2_WEIGHT_TYPE_DICT = ManagedProperty('SELECTABLE_CTRANSLATE2_WEIGHT_TYPE_DICT', type_=dict, serialize=False, mutable_tracking=True)
-    SELECTABLE_WHISPER_WEIGHT_TYPE_DICT = ManagedProperty('SELECTABLE_WHISPER_WEIGHT_TYPE_DICT', type_=dict, serialize=False, mutable_tracking=True)
     SELECTABLE_TRANSLATION_ENGINE_STATUS = ManagedProperty('SELECTABLE_TRANSLATION_ENGINE_STATUS', type_=dict, serialize=False, mutable_tracking=True)
     SELECTABLE_TRANSCRIPTION_ENGINE_STATUS = ManagedProperty('SELECTABLE_TRANSCRIPTION_ENGINE_STATUS', type_=dict, serialize=False, mutable_tracking=True)
-    SELECTABLE_PLAMO_MODEL_LIST = ManagedProperty('SELECTABLE_PLAMO_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
     SELECTABLE_GEMINI_MODEL_LIST = ManagedProperty('SELECTABLE_GEMINI_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
     SELECTABLE_OPENAI_MODEL_LIST = ManagedProperty('SELECTABLE_OPENAI_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
     SELECTABLE_CUSTOM_OPENAI_MODEL_LIST = ManagedProperty('SELECTABLE_CUSTOM_OPENAI_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
-    SELECTABLE_GROQ_MODEL_LIST = ManagedProperty('SELECTABLE_GROQ_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
-    SELECTABLE_OPENROUTER_MODEL_LIST = ManagedProperty('SELECTABLE_OPENROUTER_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
     SELECTABLE_SILICONFLOW_MODEL_LIST = ManagedProperty('SELECTABLE_SILICONFLOW_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
-    SELECTABLE_LMSTUDIO_MODEL_LIST = ManagedProperty('SELECTABLE_LMSTUDIO_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
-    SELECTABLE_OLLAMA_MODEL_LIST = ManagedProperty('SELECTABLE_OLLAMA_MODEL_LIST', type_=list, serialize=False, mutable_tracking=True)
 
     # --- Save Json Data (ManagedProperty-based) ---
     # More simple boolean flags replaced with ManagedProperty
@@ -698,7 +648,6 @@ class Config:
             if isinstance(val, dict) else None
         )
     )
-    LMSTUDIO_URL = ManagedProperty('LMSTUDIO_URL', type_=str)
     CUSTOM_OPENAI_URL = ManagedProperty('CUSTOM_OPENAI_URL', type_=str)
     CUSTOM_OPENAI_MODEL = ManagedProperty('CUSTOM_OPENAI_MODEL', type_=str)
     CUSTOM_OPENAI_ENABLE_ASR_CORRECTION = ManagedProperty('CUSTOM_OPENAI_ENABLE_ASR_CORRECTION', type_=bool)
@@ -733,8 +682,6 @@ class Config:
     TRANSLATION_FALLBACK_ENGINE = ManagedProperty('TRANSLATION_FALLBACK_ENGINE', type_=str)
 
     # --- Transcription settings ---
-    SELECTED_TRANSCRIPTION_COMPUTE_TYPE = ValidatedProperty('SELECTED_TRANSCRIPTION_COMPUTE_TYPE', _selected_transcription_compute_type_validator)
-
     # --- Overlay settings ---
     OVERLAY_SMALL_LOG_SETTINGS = ValidatedProperty('OVERLAY_SMALL_LOG_SETTINGS', _overlay_small_validator)
     OVERLAY_LARGE_LOG_SETTINGS = ValidatedProperty('OVERLAY_LARGE_LOG_SETTINGS', _overlay_large_validator)
@@ -767,34 +714,21 @@ class Config:
     SELECTED_TAB_NO = ManagedProperty('SELECTED_TAB_NO', type_=str, allowed=lambda v, inst: v in inst.SELECTABLE_TAB_NO_LIST)
     SELECTED_TRANSCRIPTION_ENGINE = ManagedProperty('SELECTED_TRANSCRIPTION_ENGINE', type_=str, allowed=lambda v, inst: v in inst.SELECTABLE_TRANSCRIPTION_ENGINE_LIST)
     USE_EXCLUDE_WORDS = ManagedProperty('USE_EXCLUDE_WORDS', type_=bool)
-    CTRANSLATE2_WEIGHT_TYPE = ManagedProperty('CTRANSLATE2_WEIGHT_TYPE', type_=str, allowed=lambda v, inst: v in inst.SELECTABLE_CTRANSLATE2_WEIGHT_TYPE_LIST)
-    WHISPER_WEIGHT_TYPE = ManagedProperty('WHISPER_WEIGHT_TYPE', type_=str, allowed=lambda v, inst: v in inst.SELECTABLE_WHISPER_WEIGHT_TYPE_LIST)
-    SELECTED_PLAMO_MODEL = ManagedProperty('SELECTED_PLAMO_MODEL', type_=str, allowed=_allowed_in_populated('SELECTABLE_PLAMO_MODEL_LIST'))
     SELECTED_GEMINI_MODEL = ManagedProperty('SELECTED_GEMINI_MODEL', type_=str, allowed=_allowed_in_populated('SELECTABLE_GEMINI_MODEL_LIST'))
     SELECTED_OPENAI_MODEL = ManagedProperty('SELECTED_OPENAI_MODEL', type_=str, allowed=_allowed_in_populated('SELECTABLE_OPENAI_MODEL_LIST'))
-    SELECTED_GROQ_MODEL = ManagedProperty('SELECTED_GROQ_MODEL', type_=str, allowed=_allowed_in_populated('SELECTABLE_GROQ_MODEL_LIST'))
-    SELECTED_OPENROUTER_MODEL = ManagedProperty('SELECTED_OPENROUTER_MODEL', type_=str, allowed=_allowed_in_populated('SELECTABLE_OPENROUTER_MODEL_LIST'))
     SELECTED_SILICONFLOW_MODEL = ManagedProperty('SELECTED_SILICONFLOW_MODEL', type_=str, allowed=_allowed_in_populated('SELECTABLE_SILICONFLOW_MODEL_LIST'))
-    SELECTED_LMSTUDIO_MODEL = ManagedProperty('SELECTED_LMSTUDIO_MODEL', type_=str, allowed=_allowed_in_populated('SELECTABLE_LMSTUDIO_MODEL_LIST'))
-    SELECTED_OLLAMA_MODEL = ManagedProperty('SELECTED_OLLAMA_MODEL', type_=str, allowed=_allowed_in_populated('SELECTABLE_OLLAMA_MODEL_LIST'))
-
     # --- Translation and language settings ---
     MIC_WORD_FILTER = ValidatedProperty('MIC_WORD_FILTER', _mic_word_filter_validator)
     PLUGINS_STATUS = ValidatedProperty('PLUGINS_STATUS', _plugins_status_validator, immediate_save=True)
     SELECTED_TRANSLATION_ENGINES = ValidatedProperty('SELECTED_TRANSLATION_ENGINES', _selected_translation_engines_validator)
     SELECTED_YOUR_LANGUAGES = ValidatedProperty('SELECTED_YOUR_LANGUAGES', _selected_your_languages_validator)
     SELECTED_TARGET_LANGUAGES = ValidatedProperty('SELECTED_TARGET_LANGUAGES', _selected_target_languages_validator)
-    SELECTED_TRANSLATION_COMPUTE_TYPE = ValidatedProperty('SELECTED_TRANSLATION_COMPUTE_TYPE', _selected_translation_compute_type_validator)
-
     # --- Device settings ---
     AUTO_MIC_SELECT = ManagedProperty('AUTO_MIC_SELECT', type_=bool)
     AUTO_SPEAKER_SELECT = ManagedProperty('AUTO_SPEAKER_SELECT', type_=bool)
     SELECTED_MIC_HOST = ValidatedProperty('SELECTED_MIC_HOST', _mic_host_validator)
     SELECTED_MIC_DEVICE = ValidatedProperty('SELECTED_MIC_DEVICE', _mic_device_validator)
     SELECTED_SPEAKER_DEVICE = ValidatedProperty('SELECTED_SPEAKER_DEVICE', _speaker_device_validator)
-    SELECTED_TRANSLATION_COMPUTE_DEVICE = ValidatedProperty('SELECTED_TRANSLATION_COMPUTE_DEVICE', _compute_device_validator)
-    SELECTED_TRANSCRIPTION_COMPUTE_DEVICE = ValidatedProperty('SELECTED_TRANSCRIPTION_COMPUTE_DEVICE', _compute_device_validator)
-
     # -- Clipboard control ---
     ENABLE_CLIPBOARD = ManagedProperty('ENABLE_CLIPBOARD', type_=bool)
 
@@ -818,8 +752,6 @@ class Config:
 
         self._SELECTABLE_TAB_NO_LIST = ["1", "2", "3"]
         # these external mappings may be empty dicts if the optional modules failed to import
-        self._SELECTABLE_CTRANSLATE2_WEIGHT_TYPE_LIST = getattr(ctranslate2_weights, 'keys', lambda: [])()
-        self._SELECTABLE_WHISPER_WEIGHT_TYPE_LIST = getattr(whisper_models, 'keys', lambda: [])()
         translation_lang = loadTranslationLanguages(self.PATH_LOCAL)
         self._SELECTABLE_TRANSLATION_ENGINE_LIST = getattr(translation_lang, 'keys', lambda: [])()
         try:
@@ -829,8 +761,6 @@ class Config:
         except Exception:
             self._SELECTABLE_TRANSCRIPTION_ENGINE_LIST = []
         self._SELECTABLE_UI_LANGUAGE_LIST = ["en", "ja", "ko", "zh-Hant", "zh-Hans"]
-        self._COMPUTE_MODE = "cuda" if torch.cuda.is_available() else "cpu"
-        self._SELECTABLE_COMPUTE_DEVICE_LIST = getComputeDeviceList()
         self._SEND_MESSAGE_BUTTON_TYPE_LIST = ["show", "hide", "show_and_disable_enter_key"]
 
         # Read Write
@@ -840,34 +770,23 @@ class Config:
         self._ENABLE_FOREGROUND = False
         self._ENABLE_CHECK_ENERGY_SEND = False
         self._ENABLE_CHECK_ENERGY_RECEIVE = False
-        self._SELECTABLE_CTRANSLATE2_WEIGHT_TYPE_DICT = {}
-        for weight_type in self.SELECTABLE_CTRANSLATE2_WEIGHT_TYPE_LIST:
-            self._SELECTABLE_CTRANSLATE2_WEIGHT_TYPE_DICT[weight_type] = False
-        self._SELECTABLE_WHISPER_WEIGHT_TYPE_DICT = {}
-        for weight_type in self.SELECTABLE_WHISPER_WEIGHT_TYPE_LIST:
-            self._SELECTABLE_WHISPER_WEIGHT_TYPE_DICT[weight_type] = False
         self._SELECTABLE_TRANSLATION_ENGINE_STATUS = {}
         for engine in self.SELECTABLE_TRANSLATION_ENGINE_LIST:
             self._SELECTABLE_TRANSLATION_ENGINE_STATUS[engine] = False
         self._SELECTABLE_TRANSCRIPTION_ENGINE_STATUS = {}
         for engine in self.SELECTABLE_TRANSCRIPTION_ENGINE_LIST:
             self._SELECTABLE_TRANSCRIPTION_ENGINE_STATUS[engine] = False
-        self._SELECTABLE_PLAMO_MODEL_LIST = []
         self._SELECTABLE_GEMINI_MODEL_LIST = []
         self._SELECTABLE_OPENAI_MODEL_LIST = []
         self._SELECTABLE_CUSTOM_OPENAI_MODEL_LIST = []
-        self._SELECTABLE_GROQ_MODEL_LIST = []
-        self._SELECTABLE_OPENROUTER_MODEL_LIST = []
         self._SELECTABLE_SILICONFLOW_MODEL_LIST = []
-        self._SELECTABLE_LMSTUDIO_MODEL_LIST = []
-        self._SELECTABLE_OLLAMA_MODEL_LIST = []
 
         # Save Json Data
         ## Main Window
         self._SELECTED_TAB_NO = "1"
         self._SELECTED_TRANSLATION_ENGINES = {}
         for tab_no in self.SELECTABLE_TAB_NO_LIST:
-            self._SELECTED_TRANSLATION_ENGINES[tab_no] = "CTranslate2"
+            self._SELECTED_TRANSLATION_ENGINES[tab_no] = "DeepL"
         self._SELECTED_YOUR_LANGUAGES = {}
         for tab_no in self.SELECTABLE_TAB_NO_LIST:
             self._SELECTED_YOUR_LANGUAGES[tab_no] = {
@@ -980,32 +899,22 @@ class Config:
         self._OSC_PORT = 9000
         self._AUTH_KEYS = {
             "DeepL_API": None,
-            "Plamo_API": None,
             "Gemini_API": None,
             "OpenAI_API": None,
             "Custom_OpenAI_API": None,
             "Custom_OpenAI_API_2": None,
             "Custom_OpenAI_API_3": None,
-            "Groq_API": None,
-            "OpenRouter_API": None,
             "SiliconFlow_API": None,
         }
         self._USE_EXCLUDE_WORDS = True
-        self._SELECTED_TRANSLATION_COMPUTE_DEVICE = copy.deepcopy(self.SELECTABLE_COMPUTE_DEVICE_LIST[0])
-        self._SELECTED_TRANSCRIPTION_COMPUTE_DEVICE = copy.deepcopy(self.SELECTABLE_COMPUTE_DEVICE_LIST[0])
-        self._CTRANSLATE2_WEIGHT_TYPE = "m2m100_418M-ct2-int8"
-        self._SELECTED_PLAMO_MODEL = None
         self._SELECTED_GEMINI_MODEL = None
         self._SELECTED_OPENAI_MODEL = None
-        self._SELECTED_GROQ_MODEL = None
-        self._SELECTED_OPENROUTER_MODEL = None
         self._SELECTED_SILICONFLOW_MODEL = None
         self._SILICONFLOW_ENABLE_ASR_CORRECTION = False
         self._SILICONFLOW_ENABLE_THINKING = False
         self._SILICONFLOW_MAX_TOKENS = 1024
         self._SILICONFLOW_TEMPERATURE = 0.4
         self._SILICONFLOW_CUSTOM_SYSTEM_PROMPT = ""
-        self._LMSTUDIO_URL = "http://127.0.0.1:1234/v1"
         self._CUSTOM_OPENAI_URL = ""
         self._CUSTOM_OPENAI_MODEL = ""
         self._CUSTOM_OPENAI_ENABLE_ASR_CORRECTION = False
@@ -1026,12 +935,7 @@ class Config:
         self._CUSTOM_OPENAI_CUSTOM_SYSTEM_PROMPT_3 = ""
         self._TRANSLATION_FALLBACK_ENABLED = False
         self._TRANSLATION_FALLBACK_TIMEOUT = 10.0
-        self._TRANSLATION_FALLBACK_ENGINE = "CTranslate2"
-        self._SELECTED_LMSTUDIO_MODEL = None
-        self._SELECTED_OLLAMA_MODEL = None
-        self._SELECTED_TRANSLATION_COMPUTE_TYPE = "auto"
-        self._WHISPER_WEIGHT_TYPE = "base"
-        self._SELECTED_TRANSCRIPTION_COMPUTE_TYPE = "auto"
+        self._TRANSLATION_FALLBACK_ENGINE = "DeepL"
         self._AUTO_CLEAR_MESSAGE_BOX = True
         self._SEND_ONLY_TRANSLATED_MESSAGES = False
         self._OVERLAY_SMALL_LOG = False
@@ -1131,14 +1035,9 @@ class Config:
 
     def revalidate_selected_models(self):
         pairs = [
-            ('SELECTED_PLAMO_MODEL', 'SELECTABLE_PLAMO_MODEL_LIST'),
             ('SELECTED_GEMINI_MODEL', 'SELECTABLE_GEMINI_MODEL_LIST'),
             ('SELECTED_OPENAI_MODEL', 'SELECTABLE_OPENAI_MODEL_LIST'),
-            ('SELECTED_GROQ_MODEL', 'SELECTABLE_GROQ_MODEL_LIST'),
-            ('SELECTED_OPENROUTER_MODEL', 'SELECTABLE_OPENROUTER_MODEL_LIST'),
             ('SELECTED_SILICONFLOW_MODEL', 'SELECTABLE_SILICONFLOW_MODEL_LIST'),
-            ('SELECTED_LMSTUDIO_MODEL', 'SELECTABLE_LMSTUDIO_MODEL_LIST'),
-            ('SELECTED_OLLAMA_MODEL', 'SELECTABLE_OLLAMA_MODEL_LIST'),
         ]
         for sel_attr, list_attr in pairs:
             try:

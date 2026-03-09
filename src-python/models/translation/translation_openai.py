@@ -125,7 +125,8 @@ class OpenAIClient:
             streaming=False,
             max_tokens=self.max_tokens if self.max_tokens > 0 else None,
             temperature=self.temperature,
-            request_timeout=30,
+            request_timeout=60,
+            max_retries=0,
         )
 
     def setContextHistory(self, history_items: list[dict]) -> None:

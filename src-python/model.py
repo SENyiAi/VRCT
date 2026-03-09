@@ -32,13 +32,8 @@ from config import config
 
 from models.translation.translation_translator import Translator
 from models.osc.osc import OSCHandler
-from models.transcription.transcription_recorder import SelectedMicEnergyAndAudioRecorder, SelectedSpeakerEnergyAndAudioRecorder
-from models.transcription.transcription_recorder import SelectedMicEnergyRecorder, SelectedSpeakerEnergyRecorder
-from models.transcription.transcription_transcriber import AudioTranscriber
+
 from models.translation.translation_languages import translation_lang
-from models.transcription.transcription_languages import transcription_lang
-from models.translation.translation_utils import checkCTranslate2Weight, downloadCTranslate2Weight, downloadCTranslate2Tokenizer, backwardCompatibleRenameWeightsDir
-from models.transcription.transcription_whisper import checkWhisperWeight, downloadWhisperWeight
 from models.transliteration.transliteration_transliterator import Transliterator
 from models.overlay.overlay import Overlay
 from models.overlay.overlay_image import OverlayImage
@@ -114,17 +109,6 @@ class Model:
             return
 
         self.logger = None
-        self.th_check_device = None
-        self.mic_print_transcript = None
-        self.mic_audio_recorder = None
-        self.mic_transcriber = None
-        self.mic_energy_recorder = None
-        self.mic_energy_plot_progressbar = None
-        self.speaker_print_transcript = None
-        self.speaker_audio_recorder = None
-        self.speaker_transcriber = None
-        self.speaker_energy_recorder = None
-        self.speaker_energy_plot_progressbar = None
 
         self.previous_send_message = ""
         self.previous_receive_message = ""
@@ -141,8 +125,6 @@ class Model:
         }
         self.overlay = Overlay(overlay_settings)
         self.overlay_image = OverlayImage(config.PATH_LOCAL)
-        self.mic_audio_queue = None
-        self.mic_mute_status = None
         self.transliterator = None
         self.watchdog = Watchdog(config.WATCHDOG_TIMEOUT, config.WATCHDOG_INTERVAL)
         self.osc_handler = OSCHandler(config.OSC_IP_ADDRESS, config.OSC_PORT)
@@ -150,9 +132,7 @@ class Model:
         self.websocket_server_loop = False
         self.websocket_server_alive = False
         self.th_websocket_server = None
-        # default no-op callbacks for energy check functions
-        self.check_mic_energy_fnc: Callable[[float], None] = lambda v: None
-        self.check_speaker_energy_fnc: Callable[[float], None] = lambda v: None
+
         self.clipboard = Clipboard()
 
         self._inited = True
@@ -168,31 +148,6 @@ class Model:
                 # Log and continue; callers should handle missing features.
                 errorLogging()
 
-    def backwardCompatibleTranslatorCTranslate2ModelRenameWeightsDir(self):
-        return backwardCompatibleRenameWeightsDir(config.PATH_LOCAL)
-        
-    def checkTranslatorCTranslate2ModelWeight(self, weight_type:str):
-        return checkCTranslate2Weight(config.PATH_LOCAL, weight_type)
-
-    def changeTranslatorCTranslate2Model(self):
-        self.ensure_initialized()
-        self.translator.changeCTranslate2Model(
-            path=config.PATH_LOCAL,
-            model_type=config.CTRANSLATE2_WEIGHT_TYPE,
-            device=config.SELECTED_TRANSLATION_COMPUTE_DEVICE["device"],
-            device_index=config.SELECTED_TRANSLATION_COMPUTE_DEVICE["device_index"],
-            compute_type=config.SELECTED_TRANSLATION_COMPUTE_TYPE
-            )
-
-    def downloadCTranslate2ModelWeight(self, weight_type, callback=None, end_callback=None):
-        return downloadCTranslate2Weight(config.PATH_LOCAL, weight_type, callback, end_callback)
-
-    def downloadCTranslate2ModelTokenizer(self, weight_type):
-        return downloadCTranslate2Tokenizer(config.PATH_LOCAL, weight_type)
-
-    def isLoadedCTranslate2Model(self):
-        self.ensure_initialized()
-        return self.translator.isLoadedCTranslate2Model()
 
     def isChangedTranslatorParameters(self):
         self.ensure_initialized()
@@ -202,11 +157,6 @@ class Model:
         self.ensure_initialized()
         self.translator.setChangedTranslatorParameters(is_changed)
 
-    def checkTranscriptionWhisperModelWeight(self, weight_type:str):
-        return checkWhisperWeight(config.PATH_LOCAL, weight_type)
-
-    def downloadWhisperModelWeight(self, weight_type, callback=None, end_callback=None):
-        return downloadWhisperWeight(config.PATH_LOCAL, weight_type, callback, end_callback)
 
     def resetKeywordProcessor(self):
         self.ensure_initialized()
@@ -218,22 +168,6 @@ class Model:
         result = self.translator.authenticationDeepLAuthKey(auth_key)
         return result
 
-    def authenticationTranslatorPlamoAuthKey(self, auth_key: str) -> bool:
-        result = self.translator.authenticationPlamoAuthKey(auth_key, root_path=config.PATH_LOCAL)
-        return result
-
-    def getTranslatorPlamoModelList(self) -> list[str]:
-        self.ensure_initialized()
-        return self.translator.getPlamoModelList()
-
-    def setTranslatorPlamoModel(self, model: str) -> bool:
-        self.ensure_initialized()
-        result = self.translator.setPlamoModel(model=model)
-        return result
-
-    def updateTranslatorPlamoClient(self) -> None:
-        self.ensure_initialized()
-        self.translator.updatePlamoClient()
 
     def authenticationTranslatorGeminiAuthKey(self, auth_key: str) -> bool:
         result = self.translator.authenticationGeminiAuthKey(auth_key, root_path=config.PATH_LOCAL)
@@ -378,39 +312,6 @@ class Model:
     def setTranslatorCustomOpenAI3CustomSystemPrompt(self, value: str) -> None:
         self.translator.setCustomOpenAI3CustomSystemPrompt(value)
 
-    def authenticationTranslatorGroqAuthKey(self, auth_key: str) -> bool:
-        result = self.translator.authenticationGroqAuthKey(auth_key, root_path=config.PATH_LOCAL)
-        return result
-
-    def getTranslatorGroqModelList(self) -> list[str]:
-        self.ensure_initialized()
-        return self.translator.getGroqModelList()
-
-    def setTranslatorGroqModel(self, model: str) -> bool:
-        self.ensure_initialized()
-        result = self.translator.setGroqModel(model=model)
-        return result
-
-    def updateTranslatorGroqClient(self) -> None:
-        self.ensure_initialized()
-        self.translator.updateGroqClient()
-
-    def authenticationTranslatorOpenRouterAuthKey(self, auth_key: str) -> bool:
-        result = self.translator.authenticationOpenRouterAuthKey(auth_key, root_path=config.PATH_LOCAL)
-        return result
-
-    def getTranslatorOpenRouterModelList(self) -> list[str]:
-        self.ensure_initialized()
-        return self.translator.getOpenRouterModelList()
-
-    def setTranslatorOpenRouterModel(self, model: str) -> bool:
-        self.ensure_initialized()
-        result = self.translator.setOpenRouterModel(model=model)
-        return result
-
-    def updateTranslatorOpenRouterClient(self) -> None:
-        self.ensure_initialized()
-        self.translator.updateOpenRouterClient()
 
     def authenticationTranslatorSiliconFlowAuthKey(self, auth_key: str) -> bool:
         result = self.translator.authenticationSiliconFlowAuthKey(auth_key, root_path=config.PATH_LOCAL)
@@ -453,45 +354,6 @@ class Model:
     def getTranslatorSiliconFlowConnected(self) -> bool:
         return self.translator.getSiliconFlowConnected()
 
-    def getTranslatorLMStudioConnected(self) -> bool:
-        self.ensure_initialized()
-        return self.translator.getLMStudioConnected()
-
-    def authenticationTranslatorLMStudio(self, base_url: str) -> bool:
-        result = self.translator.setLMStudioClientURL(base_url=base_url, root_path=config.PATH_LOCAL)
-        return result
-
-    def getTranslatorLMStudioModelList(self) -> list[str]:
-        self.ensure_initialized()
-        return self.translator.getLMStudioModelList()
-
-    def setTranslatorLMStudioModel(self, model: str) -> bool:
-        self.ensure_initialized()
-        return self.translator.setLMStudioModel(model=model)
-
-    def updateTranslatorLMStudioClient(self) -> None:
-        self.ensure_initialized()
-        self.translator.updateLMStudioClient()
-
-    def getTranslatorOllamaConnected(self) -> bool:
-        self.ensure_initialized()
-        return self.translator.getOllamaConnected()
-
-    def authenticationTranslatorOllama(self) -> bool:
-        result = self.translator.checkOllamaClient(root_path=config.PATH_LOCAL)
-        return result
-
-    def getTranslatorOllamaModelList(self) -> list[str]:
-        self.ensure_initialized()
-        return self.translator.getOllamaModelList()
-
-    def setTranslatorOllamaModel(self, model: str) -> bool:
-        self.ensure_initialized()
-        return self.translator.setOllamaModel(model=model)
-
-    def updateTranslatorOllamaClient(self) -> None:
-        self.ensure_initialized()
-        self.translator.updateOllamaClient()
 
     def startLogger(self):
         self.ensure_initialized()
@@ -506,15 +368,12 @@ class Model:
         self.logger = None
 
     def getListLanguageAndCountry(self):
+        from models.transcription.transcription_languages import transcription_lang
         transcription_langs = list(transcription_lang.keys())
         translation_langs = []
         for tl_key in translation_lang.keys():
-            if tl_key == "CTranslate2":
-                for lang in translation_lang[tl_key][config.CTRANSLATE2_WEIGHT_TYPE]["source"]:
-                    translation_langs.append(lang)
-            else:
-                for lang in translation_lang[tl_key]["source"]:
-                    translation_langs.append(lang)
+            for lang in translation_lang[tl_key].get("source", {}).keys():
+                translation_langs.append(lang)
         translation_langs = list(set(translation_langs))
         supported_langs = list(filter(lambda x: x in transcription_langs, translation_langs))
 
@@ -534,10 +393,7 @@ class Model:
         selectable_engines = [key for key, value in engines_status.items() if value is True]
         compatible_engines = []
         for engine in list(translation_lang.keys()):
-            if engine == "CTranslate2":
-                languages = translation_lang.get(engine, {}).get(config.CTRANSLATE2_WEIGHT_TYPE, {}).get("source", {})
-            else:
-                languages = translation_lang.get(engine, {}).get("source", {})
+            languages = translation_lang.get(engine, {}).get("source", {})
             source_langs = [e["language"] for e in list(source_lang.values()) if e["enable"] is True]
             target_langs = [e["language"] for e in list(target_lang.values()) if e["enable"] is True]
             language_list = list(languages.keys())
@@ -606,7 +462,7 @@ class Model:
                 future = executor.submit(
                     self.translator.translate,
                     translator_name=translator_name,
-                    weight_type=config.CTRANSLATE2_WEIGHT_TYPE,
+                    weight_type="",
                     source_language=source_language,
                     target_language=target_language,
                     target_country=target_country,
@@ -625,7 +481,7 @@ class Model:
                         try:
                             translation = self.translator.translate(
                                 translator_name=fallback_engine,
-                                weight_type=config.CTRANSLATE2_WEIGHT_TYPE,
+                                weight_type="",
                                 source_language=source_language,
                                 target_language=target_language,
                                 target_country=target_country,
@@ -635,34 +491,49 @@ class Model:
                         except Exception:
                             translation = None
         else:
-            translation = self.translator.translate(
-                            translator_name=translator_name,
-                            weight_type=config.CTRANSLATE2_WEIGHT_TYPE,
-                            source_language=source_language,
-                            target_language=target_language,
-                            target_country=target_country,
-                            message=message,
-                            context_history=history
+            # Even without explicit fallback, wrap LLM-based translation in a
+            # thread-pool with a hard timeout so a slow / unresponsive API can
+            # never block the pipeline indefinitely.
+            _LLM_ENGINES = {
+                "SiliconFlow_API", "OpenAI_API", "Gemini_API",
+                "Custom_OpenAI_API", "Custom_OpenAI_API_2", "Custom_OpenAI_API_3",
+            }
+            if translator_name in _LLM_ENGINES:
+                _hard_timeout = 65  # slightly above the per-request HTTP timeout
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(
+                        self.translator.translate,
+                        translator_name=translator_name,
+                        weight_type="",
+                        source_language=source_language,
+                        target_language=target_language,
+                        target_country=target_country,
+                        message=message,
+                        context_history=history,
                     )
+                    try:
+                        translation = future.result(timeout=_hard_timeout)
+                    except (FuturesTimeoutError, Exception) as e:
+                        translation = None
+                        printLog(f"[Translation] Engine timeout/error ({translator_name}): {type(e).__name__}")
+            else:
+                translation = self.translator.translate(
+                                translator_name=translator_name,
+                                weight_type="",
+                                source_language=source_language,
+                                target_language=target_language,
+                                target_country=target_country,
+                                message=message,
+                                context_history=history
+                        )
 
         # 翻訳失敗時のフェールセーフ処理
         if isinstance(translation, str):
             success_flag = True
             printLog(f"[Translation] Success: output_len={len(translation)}")
         else:
-            printLog(f"[Translation] Failed, falling back to CTranslate2")
-            while True:
-                translation = self.translator.translate(
-                                    translator_name="CTranslate2",
-                                    weight_type=config.CTRANSLATE2_WEIGHT_TYPE,
-                                    source_language=source_language,
-                                    target_language=target_language,
-                                    target_country=target_country,
-                                    message=message
-                            )
-                if translation is not False:
-                    break
-                sleep(0.1)
+            printLog(f"[Translation] Failed: no translation result")
+            translation = message  # フォールバック: 原文をそのまま返す
         return translation, success_flag
 
     def getInputTranslate(self, message, source_language=None):
@@ -852,26 +723,6 @@ class Model:
         # run updater
         Popen(program_name, cwd=current_directory)
 
-    @staticmethod
-    def updateCudaSoftware():
-        # try to update at most 5 times
-        for _ in range(5):
-            try:
-                program_name = "update.exe"
-                current_directory = config.PATH_LOCAL
-                res = requests_get(config.UPDATER_URL)
-                assets = res.json()['assets']
-                url = [i["browser_download_url"] for i in assets if i["name"] == program_name][0]
-                res = requests_get(url, stream=True)
-                with open(os_path.join(current_directory, program_name), 'wb') as file:
-                    for chunk in res.iter_content(chunk_size=1024*5):
-                        file.write(chunk)
-                break
-            except Exception:
-                errorLogging()
-        # run updater
-        Popen([program_name, "--cuda"], cwd=current_directory)
-
     def getListMicHost(self):
         self.ensure_initialized()
         try:
@@ -912,342 +763,6 @@ class Model:
             result = ["NoDevice"]
         return result
 
-    def startMicTranscript(self, fnc):
-        self.ensure_initialized()
-        mic_host_name = config.SELECTED_MIC_HOST
-        mic_device_name = config.SELECTED_MIC_DEVICE
-
-        mic_device_list = device_manager.getMicDevices().get(mic_host_name, [{"name": "NoDevice"}])
-        selected_mic_device = [device for device in mic_device_list if device["name"] == mic_device_name]
-
-        if len(selected_mic_device) == 0 or mic_device_name == "NoDevice":
-            fnc({"text": False, "language": None})
-        else:
-            self.mic_audio_queue = Queue()
-            # self.mic_energy_queue = Queue()
-
-            mic_device = selected_mic_device[0]
-            record_timeout = config.MIC_RECORD_TIMEOUT
-            phrase_timeout = config.MIC_PHRASE_TIMEOUT
-            if record_timeout > phrase_timeout:
-                record_timeout = phrase_timeout
-
-            self.mic_audio_recorder = SelectedMicEnergyAndAudioRecorder(
-                device=mic_device,
-                energy_threshold=config.MIC_THRESHOLD,
-                dynamic_energy_threshold=config.MIC_AUTOMATIC_THRESHOLD,
-                phrase_time_limit=record_timeout,
-            )
-            # self.mic_audio_recorder.recordIntoQueue(self.mic_audio_queue, mic_energy_queue)
-            self.mic_audio_recorder.recordIntoQueue(self.mic_audio_queue, None)
-            self.mic_transcriber = AudioTranscriber(
-                speaker=False,
-                source=self.mic_audio_recorder.source,
-                phrase_timeout=phrase_timeout,
-                max_phrases=config.MIC_MAX_PHRASES,
-                transcription_engine=config.SELECTED_TRANSCRIPTION_ENGINE,
-                root=config.PATH_LOCAL,
-                whisper_weight_type=config.WHISPER_WEIGHT_TYPE,
-                device=config.SELECTED_TRANSCRIPTION_COMPUTE_DEVICE["device"],
-                device_index=config.SELECTED_TRANSCRIPTION_COMPUTE_DEVICE["device_index"],
-                compute_type=config.SELECTED_TRANSCRIPTION_COMPUTE_TYPE,
-            )
-            def sendMicTranscript():
-                try:
-                    selected_your_languages = config.SELECTED_YOUR_LANGUAGES[config.SELECTED_TAB_NO]
-                    languages = [data["language"] for data in selected_your_languages.values() if data["enable"] is True]
-                    countries = [data["country"] for data in selected_your_languages.values() if data["enable"] is True]
-                    if isinstance(self.mic_transcriber, AudioTranscriber) is True:
-                        res = self.mic_transcriber.transcribeAudioQueue(
-                            self.mic_audio_queue,
-                            languages,
-                            countries,
-                            config.MIC_AVG_LOGPROB,
-                            config.MIC_NO_SPEECH_PROB,
-                            config.MIC_NO_REPEAT_NGRAM_SIZE,
-                            config.MIC_VAD_FILTER,
-                            config.MIC_VAD_PARAMETERS,
-                        )
-                        if res:
-                            result = self.mic_transcriber.getTranscript()
-                            fnc(result)
-                except Exception:
-                    errorLogging()
-
-            def endMicTranscript():
-                while not self.mic_audio_queue.empty():
-                    self.mic_audio_queue.get()
-                # while not self.mic_energy_queue.empty():
-                #     self.mic_energy_queue.get()
-                self.mic_transcriber = None
-                gc.collect()
-
-            # def sendMicEnergy():
-            #     if mic_energy_queue.empty() is False:
-            #         energy = mic_energy_queue.get()
-            #         # print("mic energy:", energy)
-            #         try:
-            #             fnc(energy)
-            #         except Exception:
-            #             pass
-            #     sleep(0.01)
-
-            self.mic_print_transcript = threadFnc(sendMicTranscript, end_fnc=endMicTranscript)
-            self.mic_print_transcript.daemon = True
-            self.mic_print_transcript.start()
-
-            # self.mic_get_energy = threadFnc(sendMicEnergy)
-            # self.mic_get_energy.daemon = True
-            # self.mic_get_energy.start()
-
-            self.changeMicTranscriptStatus()
-
-    def resumeMicTranscript(self):
-        self.ensure_initialized()
-        # キューをクリア
-        if isinstance(self.mic_audio_queue, Queue):
-            while not self.mic_audio_queue.empty():
-                self.mic_audio_queue.get()
-
-        # 文字起こしを再開
-        # if isinstance(self.mic_print_transcript, threadFnc):
-        #     self.mic_print_transcript.resume()
-
-        # 音声のレコードを再開
-        if isinstance(self.mic_audio_recorder, SelectedMicEnergyAndAudioRecorder):
-            self.mic_audio_recorder.resume()
-
-    def pauseMicTranscript(self):
-        self.ensure_initialized()
-        # 文字起こしを一時停止
-        # if isinstance(self.mic_print_transcript, threadFnc):
-        #     self.mic_print_transcript.pause()
-
-        # 音声のレコードを一時停止
-        if isinstance(self.mic_audio_recorder, SelectedMicEnergyAndAudioRecorder):
-            self.mic_audio_recorder.pause()
-
-    # VRAM 不足エラーを検出するメソッドを追加
-    def detectVRAMError(self, error):
-        error_str = str(error)
-        if isinstance(error, ValueError) and len(error.args) > 0 and error.args[0] == "VRAM_OUT_OF_MEMORY":
-            return True, error.args[1] if len(error.args) > 1 else "VRAM out of memory"
-        if "CUDA out of memory" in error_str or "CUBLAS_STATUS_ALLOC_FAILED" in error_str:
-            return True, error_str
-        return False, None
-
-    def changeMicTranscriptStatus(self):
-        if config.VRC_MIC_MUTE_SYNC is True:
-            match self.mic_mute_status:
-                case True:
-                    self.pauseMicTranscript()
-                case False:
-                    self.resumeMicTranscript()
-                case None:
-                    # mute selfの状態が不明な場合は一時停止しない
-                    self.resumeMicTranscript()
-                case _:
-                    pass
-        else:
-            self.resumeMicTranscript()
-
-    def stopMicTranscript(self):
-        self.ensure_initialized()
-        if isinstance(self.mic_print_transcript, threadFnc):
-            self.mic_print_transcript.stop()
-            self.mic_print_transcript.join()
-            self.mic_print_transcript = None
-        if isinstance(self.mic_audio_recorder, SelectedMicEnergyAndAudioRecorder):
-            self.mic_audio_recorder.resume()
-            self.mic_audio_recorder.stop()
-            self.mic_audio_recorder = None
-        # if isinstance(self.mic_get_energy, threadFnc):
-        #     self.mic_get_energy.stop()
-        #     self.mic_get_energy = None
-
-    def startCheckMicEnergy(self, fnc:Optional[Callable[[float], None]]=None) -> None:
-        self.ensure_initialized()
-        # fnc may be None or a callable. Use cast after checking for None to satisfy type checker.
-        if fnc is not None:
-            self.check_mic_energy_fnc = cast(Callable[[float], None], fnc)
-
-        mic_host_name = config.SELECTED_MIC_HOST
-        mic_device_name = config.SELECTED_MIC_DEVICE
-
-        mic_device_list = device_manager.getMicDevices().get(mic_host_name, [{"name": "NoDevice"}])
-        selected_mic_device = [device for device in mic_device_list if device["name"] == mic_device_name]
-
-        if len(selected_mic_device) == 0 or mic_device_name == "NoDevice":
-            self.check_mic_energy_fnc(False)
-        else:
-            def sendMicEnergy():
-                if mic_energy_queue.empty() is False:
-                    energy = mic_energy_queue.get()
-                    try:
-                        self.check_mic_energy_fnc(energy)
-                    except Exception:
-                        errorLogging()
-                sleep(0.01)
-
-            mic_energy_queue: Queue = Queue()
-            mic_device = selected_mic_device[0]
-            self.mic_energy_recorder = SelectedMicEnergyRecorder(mic_device)
-            self.mic_energy_recorder.recordIntoQueue(mic_energy_queue)
-            self.mic_energy_plot_progressbar = threadFnc(sendMicEnergy)
-            self.mic_energy_plot_progressbar.daemon = True
-            self.mic_energy_plot_progressbar.start()
-
-    def stopCheckMicEnergy(self):
-        self.ensure_initialized()
-        if isinstance(self.mic_energy_plot_progressbar, threadFnc):
-            self.mic_energy_plot_progressbar.stop()
-            self.mic_energy_plot_progressbar.join()
-            self.mic_energy_plot_progressbar = None
-        if isinstance(self.mic_energy_recorder, SelectedMicEnergyRecorder):
-            self.mic_energy_recorder.resume()
-            self.mic_energy_recorder.stop()
-            self.mic_energy_recorder = None
-
-    def startSpeakerTranscript(self, fnc:Optional[Callable[[dict], None]]=None) -> None:
-        self.ensure_initialized()
-        speaker_device_name = config.SELECTED_SPEAKER_DEVICE
-
-        speaker_device_list = device_manager.getSpeakerDevices()
-        selected_speaker_device = [device for device in speaker_device_list if device["name"] == speaker_device_name]
-
-        if len(selected_speaker_device) == 0 or speaker_device_name == "NoDevice":
-            # fnc may be None; only call if callable
-            if callable(fnc):
-                fnc({"text": False, "language": None})
-        else:
-            speaker_audio_queue: Queue = Queue()
-            speaker_device = selected_speaker_device[0]
-            record_timeout = config.SPEAKER_RECORD_TIMEOUT
-            phrase_timeout = config.SPEAKER_PHRASE_TIMEOUT
-            if record_timeout > phrase_timeout:
-                record_timeout = phrase_timeout
-
-            self.speaker_audio_recorder = SelectedSpeakerEnergyAndAudioRecorder(
-                device=speaker_device,
-                energy_threshold=config.SPEAKER_THRESHOLD,
-                dynamic_energy_threshold=config.SPEAKER_AUTOMATIC_THRESHOLD,
-                phrase_time_limit=record_timeout,
-            )
-            # self.speaker_audio_recorder.recordIntoQueue(speaker_audio_queue, speaker_energy_queue)
-            self.speaker_audio_recorder.recordIntoQueue(speaker_audio_queue, None)
-            self.speaker_transcriber = AudioTranscriber(
-                speaker=True,
-                source=self.speaker_audio_recorder.source,
-                phrase_timeout=phrase_timeout,
-                max_phrases=config.SPEAKER_MAX_PHRASES,
-                transcription_engine=config.SELECTED_TRANSCRIPTION_ENGINE,
-                root=config.PATH_LOCAL,
-                whisper_weight_type=config.WHISPER_WEIGHT_TYPE,
-                device=config.SELECTED_TRANSCRIPTION_COMPUTE_DEVICE["device"],
-                device_index=config.SELECTED_TRANSCRIPTION_COMPUTE_DEVICE["device_index"],
-                compute_type=config.SELECTED_TRANSCRIPTION_COMPUTE_TYPE,
-            )
-            def sendSpeakerTranscript():
-                try:
-                    selected_target_languages = config.SELECTED_TARGET_LANGUAGES[config.SELECTED_TAB_NO]
-                    languages = [data["language"] for data in selected_target_languages.values() if data["enable"] is True]
-                    countries = [data["country"] for data in selected_target_languages.values() if data["enable"] is True]
-                    if isinstance(self.speaker_transcriber, AudioTranscriber) is True:
-                        res = self.speaker_transcriber.transcribeAudioQueue(
-                            speaker_audio_queue,
-                            languages,
-                            countries,
-                            config.SPEAKER_AVG_LOGPROB,
-                            config.SPEAKER_NO_SPEECH_PROB,
-                            config.SPEAKER_NO_REPEAT_NGRAM_SIZE,
-                            config.SPEAKER_VAD_FILTER,
-                            config.SPEAKER_VAD_PARAMETERS,
-                        )
-                        if res:
-                            result = self.speaker_transcriber.getTranscript()
-                            fnc(result)
-                except Exception:
-                    errorLogging()
-
-            def endSpeakerTranscript():
-                while not speaker_audio_queue.empty():
-                    speaker_audio_queue.get()
-                # while not speaker_energy_queue.empty():
-                #     speaker_energy_queue.get()
-                self.speaker_transcriber = None
-                gc.collect()
-
-            # def sendSpeakerEnergy():
-            #     if speaker_energy_queue.empty() is False:
-            #         energy = speaker_energy_queue.get()
-            #         # print("speaker energy:", energy)
-            #         try:
-            #             fnc(energy)
-            #         except Exception:
-            #             pass
-            #     sleep(0.01)
-
-            self.speaker_print_transcript = threadFnc(sendSpeakerTranscript, end_fnc=endSpeakerTranscript)
-            self.speaker_print_transcript.daemon = True
-            self.speaker_print_transcript.start()
-
-            # self.speaker_get_energy = threadFnc(sendSpeakerEnergy)
-            # self.speaker_get_energy.daemon = True
-            # self.speaker_get_energy.start()
-
-    def stopSpeakerTranscript(self):
-        self.ensure_initialized()
-        if isinstance(self.speaker_print_transcript, threadFnc):
-            self.speaker_print_transcript.stop()
-            self.speaker_print_transcript.join()
-            self.speaker_print_transcript = None
-        if isinstance(self.speaker_audio_recorder, SelectedSpeakerEnergyAndAudioRecorder):
-            self.speaker_audio_recorder.stop()
-            self.speaker_audio_recorder = None
-        # if isinstance(self.speaker_get_energy, threadFnc):
-        #     self.speaker_get_energy.stop()
-        #     self.speaker_get_energy = None
-
-    def startCheckSpeakerEnergy(self, fnc:Optional[Callable[[float], None]]=None) -> None:
-        self.ensure_initialized()
-        # Accept None as default and assign safely with cast after None-check
-        if fnc is not None:
-            self.check_speaker_energy_fnc = cast(Callable[[float], None], fnc)
-
-        speaker_device_name = config.SELECTED_SPEAKER_DEVICE
-        speaker_device_list = device_manager.getSpeakerDevices()
-        selected_speaker_device = [device for device in speaker_device_list if device["name"] == speaker_device_name]
-
-        if len(selected_speaker_device) == 0 or speaker_device_name == "NoDevice":
-            self.check_speaker_energy_fnc(False)
-        else:
-            def sendSpeakerEnergy():
-                if not speaker_energy_queue.empty():
-                    energy = speaker_energy_queue.get()
-                    try:
-                        self.check_speaker_energy_fnc(energy)
-                    except Exception:
-                        errorLogging()
-                sleep(0.01)
-
-            speaker_energy_queue: Queue = Queue()
-            speaker_device = selected_speaker_device[0]
-            self.speaker_energy_recorder = SelectedSpeakerEnergyRecorder(speaker_device)
-            self.speaker_energy_recorder.recordIntoQueue(speaker_energy_queue)
-            self.speaker_energy_plot_progressbar = threadFnc(sendSpeakerEnergy)
-            self.speaker_energy_plot_progressbar.daemon = True
-            self.speaker_energy_plot_progressbar.start()
-
-    def stopCheckSpeakerEnergy(self):
-        self.ensure_initialized()
-        if isinstance(self.speaker_energy_plot_progressbar, threadFnc):
-            self.speaker_energy_plot_progressbar.stop()
-            self.speaker_energy_plot_progressbar.join()
-            self.speaker_energy_plot_progressbar = None
-        if isinstance(self.speaker_energy_recorder, SelectedSpeakerEnergyRecorder):
-            self.speaker_energy_recorder.resume()
-            self.speaker_energy_recorder.stop()
-            self.speaker_energy_recorder = None
 
     def createOverlayImageSmallLog(self, message:Optional[str], your_language:Optional[str], translation:list, target_language:Optional[dict], transliteration_message:Optional[dict] = None, transliteration_translation:Optional[list] = None) -> object:
         self.ensure_initialized()

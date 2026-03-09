@@ -170,11 +170,7 @@ class SiliconFlowClient:
             return False
 
     def updateClient(self) -> None:
-        extra_kwargs = {}
-        if self.enable_thinking:
-            extra_kwargs["top_p"] = 0.95
-        else:
-            extra_kwargs["top_p"] = 0.9
+        top_p_value = 0.95 if self.enable_thinking else 0.9
         self.siliconflow_llm = ChatOpenAI(
             base_url=self.base_url,
             model=self.model,
@@ -182,10 +178,11 @@ class SiliconFlowClient:
             streaming=False,
             max_tokens=self.max_tokens if self.max_tokens > 0 else None,
             temperature=self.temperature,
-            model_kwargs=extra_kwargs,
-            request_timeout=30,
+            top_p=top_p_value,
+            request_timeout=60,
+            max_retries=0,
         )
-        sf_logger.info(f"[SiliconFlow] Client updated: model={self.model} thinking={self.enable_thinking} asr_correction={self.enable_asr_correction} temp={self.temperature} max_tokens={self.max_tokens} top_p={extra_kwargs.get('top_p')}")
+        sf_logger.info(f"[SiliconFlow] Client updated: model={self.model} thinking={self.enable_thinking} asr_correction={self.enable_asr_correction} temp={self.temperature} max_tokens={self.max_tokens} top_p={top_p_value}")
 
     def setContextHistory(self, history_items: list[dict]) -> None:
         self._context_history = history_items or []

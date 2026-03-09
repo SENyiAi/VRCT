@@ -8,8 +8,6 @@ import logging
 from controller import Controller  # noqa: E402
 from utils import printLog, printResponse, errorLogging, encodeBase64 # noqa: E402
 
-logging.getLogger("huggingface_hub").setLevel(logging.ERROR)
-
 run_mapping = {
     "enable_translation":"/run/enable_translation",
     "enable_transcription_send":"/run/enable_transcription_send",
@@ -27,20 +25,7 @@ run_mapping = {
     "error_device":"/run/error_device",
     "error_translation_engine":"/run/error_translation_engine",
 
-    "error_translation_chat_vram_overflow":"/run/error_translation_chat_vram_overflow",
-    "error_translation_mic_vram_overflow":"/run/error_translation_mic_vram_overflow",
-    "error_translation_speaker_vram_overflow":"/run/error_translation_speaker_vram_overflow",
-    "error_transcription_mic_vram_overflow":"/run/error_transcription_mic_vram_overflow",
-    "error_transcription_speaker_vram_overflow":"/run/error_transcription_speaker_vram_overflow",
-
     "word_filter":"/run/word_filter",
-
-    "download_progress_ctranslate2_weight":"/run/download_progress_ctranslate2_weight",
-    "downloaded_ctranslate2_weight":"/run/downloaded_ctranslate2_weight",
-    "error_ctranslate2_weight":"/run/error_ctranslate2_weight",
-    "download_progress_whisper_weight":"/run/download_progress_whisper_weight",
-    "downloaded_whisper_weight":"/run/downloaded_whisper_weight",
-    "error_whisper_weight":"/run/error_whisper_weight",
 
     "selected_mic_host":"/run/selected_mic_host",
     "selected_mic_device":"/run/selected_mic_device",
@@ -48,12 +33,6 @@ run_mapping = {
 
     "selected_translation_engines":"/run/selected_translation_engines",
     "translation_engines":"/run/translation_engines",
-
-    "selected_translation_compute_type":"/run/selected_translation_compute_type",
-    "selected_transcription_compute_type":"/run/selected_transcription_compute_type",
-
-    "selectable_plamo_model_list":"/run/selectable_plamo_model_list",
-    "selected_plamo_model":"/run/selected_plamo_model",
     "selectable_gemini_model_list":"/run/selectable_gemini_model_list",
     "selected_gemini_model":"/run/selected_gemini_model",
     "selectable_openai_model_list":"/run/selectable_openai_model_list",
@@ -61,16 +40,8 @@ run_mapping = {
     "custom_openai_connection":"/run/custom_openai_connection",
     "custom_openai_2_connection":"/run/custom_openai_2_connection",
     "custom_openai_3_connection":"/run/custom_openai_3_connection",
-    "selectable_groq_model_list":"/run/selectable_groq_model_list",
-    "selected_groq_model":"/run/selected_groq_model",
-    "selectable_openrouter_model_list":"/run/selectable_openrouter_model_list",
-    "selected_openrouter_model":"/run/selected_openrouter_model",
     "selectable_siliconflow_model_list":"/run/selectable_siliconflow_model_list",
     "selected_siliconflow_model":"/run/selected_siliconflow_model",
-    "selectable_lmstudio_model_list":"/run/selectable_lmstudio_model_list",
-    "selected_lmstudio_model":"/run/selected_lmstudio_model",
-    "selectable_ollama_model_list":"/run/selectable_ollama_model_list",
-    "selected_ollama_model":"/run/selected_ollama_model",
 
     "selectable_mic_host_list":"/run/selectable_mic_host_list",
     "selectable_mic_device_list":"/run/selectable_mic_device_list",
@@ -144,7 +115,6 @@ mapping = {
     "/run/swap_your_language_and_target_language": {"status": True, "variable":controller.swapYourLanguageAndTargetLanguage},
 
     "/run/update_software": {"status": True, "variable":controller.updateSoftware},
-    "/run/update_cuda_software": {"status": True, "variable":controller.updateCudaSoftware},
 
     # Config Window
     # Appearance
@@ -179,35 +149,12 @@ mapping = {
     "/set/data/main_window_geometry": {"status": True, "variable":controller.setMainWindowGeometry},
 
     # Compute device
-    "/get/data/compute_mode": {"status": True, "variable":controller.getComputeMode},
-    "/get/data/selectable_translation_compute_device_list": {"status": True, "variable":controller.getComputeDeviceList},
-    "/get/data/selected_translation_compute_device": {"status": True, "variable":controller.getSelectedTranslationComputeDevice},
-    "/set/data/selected_translation_compute_device": {"status": True, "variable":controller.setSelectedTranslationComputeDevice},
-    "/get/data/selectable_transcription_compute_device_list": {"status": True, "variable":controller.getComputeDeviceList},
-    "/get/data/selected_transcription_compute_device": {"status": True, "variable":controller.getSelectedTranscriptionComputeDevice},
-    "/set/data/selected_transcription_compute_device": {"status": True, "variable":controller.setSelectedTranscriptionComputeDevice},
 
     # Translation
-    "/get/data/selectable_ctranslate2_weight_type_dict": {"status": True, "variable":controller.getSelectableCtranslate2WeightTypeDict},
-
-    "/get/data/selected_ctranslate2_weight_type": {"status": True, "variable":controller.getCtranslate2WeightType},
-    "/set/data/selected_ctranslate2_weight_type": {"status": True, "variable":controller.setCtranslate2WeightType},
-
-    "/get/data/selected_translation_compute_type": {"status": True, "variable":controller.getSelectedTranslationComputeType},
-    "/set/data/selected_translation_compute_type": {"status": True, "variable":controller.setSelectedTranslationComputeType},
-
-    "/run/download_ctranslate2_weight": {"status": True, "variable":controller.downloadCtranslate2Weight},
 
     "/get/data/deepl_auth_key": {"status": False, "variable":controller.getDeepLAuthKey},
     "/set/data/deepl_auth_key": {"status": False, "variable":controller.setDeeplAuthKey},
     "/delete/data/deepl_auth_key": {"status": False, "variable":controller.delDeeplAuthKey},
-
-    "/get/data/selectable_plamo_model_list": {"status": False, "variable":controller.getPlamoModelList},
-    "/get/data/selected_plamo_model": {"status": False, "variable":controller.getPlamoModel},
-    "/set/data/selected_plamo_model": {"status": False, "variable":controller.setPlamoModel},
-    "/get/data/plamo_auth_key": {"status": False, "variable":controller.getPlamoAuthKey},
-    "/set/data/plamo_auth_key": {"status": False, "variable":controller.setPlamoAuthKey},
-    "/delete/data/plamo_auth_key": {"status": False, "variable":controller.delPlamoAuthKey},
 
     "/get/data/selectable_gemini_model_list": {"status": True, "variable":controller.getGeminiModelList},
     "/get/data/selected_gemini_model": {"status": True, "variable":controller.getGeminiModel},
@@ -294,20 +241,6 @@ mapping = {
     "/get/data/translation_fallback_engine": {"status": True, "variable":controller.getTranslationFallbackEngine},
     "/set/data/translation_fallback_engine": {"status": True, "variable":controller.setTranslationFallbackEngine},
 
-    "/get/data/selectable_groq_model_list": {"status": True, "variable":controller.getGroqModelList},
-    "/get/data/selected_groq_model": {"status": True, "variable":controller.getGroqModel},
-    "/set/data/selected_groq_model": {"status": True, "variable":controller.setGroqModel},
-    "/get/data/groq_auth_key": {"status": True, "variable":controller.getGroqAuthKey},
-    "/set/data/groq_auth_key": {"status": True, "variable":controller.setGroqAuthKey},
-    "/delete/data/groq_auth_key": {"status": True, "variable":controller.delGroqAuthKey},
-
-    "/get/data/selectable_openrouter_model_list": {"status": True, "variable":controller.getOpenRouterModelList},
-    "/get/data/selected_openrouter_model": {"status": True, "variable":controller.getOpenRouterModel},
-    "/set/data/selected_openrouter_model": {"status": True, "variable":controller.setOpenRouterModel},
-    "/get/data/openrouter_auth_key": {"status": True, "variable":controller.getOpenRouterAuthKey},
-    "/set/data/openrouter_auth_key": {"status": True, "variable":controller.setOpenRouterAuthKey},
-    "/delete/data/openrouter_auth_key": {"status": True, "variable":controller.delOpenRouterAuthKey},
-
     "/get/data/selectable_siliconflow_model_list": {"status": True, "variable":controller.getSiliconFlowModelList},
     "/get/data/selected_siliconflow_model": {"status": True, "variable":controller.getSiliconFlowModel},
     "/set/data/selected_siliconflow_model": {"status": True, "variable":controller.setSiliconFlowModel},
@@ -331,20 +264,6 @@ mapping = {
 
     # Developer test endpoint (Honkai page)
     "/run/test_translation_engine_detailed": {"status": True, "variable":controller.testTranslationEngineDetailed},
-
-    "/get/data/connected_lmstudio": {"status": True, "variable":controller.getTranslatorLMStudioConnection},
-    "/run/lmstudio_connection": {"status": True, "variable":controller.checkTranslatorLMStudioConnection},
-    "/get/data/selectable_lmstudio_model_list": {"status": True, "variable":controller.getTranslatorLStudioModelList},
-    "/get/data/selected_lmstudio_model": {"status": True, "variable":controller.getTranslatorLMStudioModel},
-    "/set/data/selected_lmstudio_model": {"status": True, "variable":controller.setTranslatorLMStudioModel},
-    "/get/data/lmstudio_url": {"status": True, "variable":controller.getTranslatorLMStudioURL},
-    "/set/data/lmstudio_url": {"status": True, "variable":controller.setTranslatorLMStudioURL},
-
-    "/get/data/connected_ollama": {"status": True, "variable":controller.getTranslatorOllamaConnection},
-    "/run/ollama_connection": {"status": True, "variable":controller.checkTranslatorOllamaConnection},
-    "/get/data/selectable_ollama_model_list": {"status": True, "variable":controller.getTranslatorOllamaModelList},
-    "/get/data/selected_ollama_model": {"status": True, "variable":controller.getTranslatorOllamaModel},
-    "/set/data/selected_ollama_model": {"status": True, "variable":controller.setTranslatorOllamaModel},
 
     # Transliteration
     "/get/data/convert_message_to_romaji": {"status": True, "variable":controller.getConvertMessageToRomaji},
@@ -438,16 +357,6 @@ mapping = {
 
     "/set/enable/check_speaker_threshold": {"status": True, "variable":controller.setEnableCheckSpeakerThreshold},
     "/set/disable/check_speaker_threshold": {"status": True, "variable":controller.setDisableCheckSpeakerThreshold},
-
-    "/get/data/selectable_whisper_weight_type_dict": {"status": True, "variable":controller.getSelectableWhisperWeightTypeDict},
-
-    "/get/data/selected_whisper_weight_type": {"status": True, "variable":controller.getWhisperWeightType},
-    "/set/data/selected_whisper_weight_type": {"status": True, "variable":controller.setWhisperWeightType},
-
-    "/get/data/selected_transcription_compute_type": {"status": True, "variable":controller.getSelectedTranscriptionComputeType},
-    "/set/data/selected_transcription_compute_type": {"status": True, "variable":controller.setSelectedTranscriptionComputeType},
-
-    "/run/download_whisper_weight": {"status": True, "variable":controller.downloadWhisperWeight},
 
     # VR
     "/get/data/overlay_small_log": {"status": True, "variable":controller.getOverlaySmallLog},
