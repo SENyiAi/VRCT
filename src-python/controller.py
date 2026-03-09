@@ -2907,15 +2907,15 @@ class Controller:
                 if slot_num == 1:
                     result = model.testTranslatorCustomOpenAITranslation(text, input_lang, output_lang)
                     model_name = config.CUSTOM_OPENAI_MODEL
-                    api_url = config.CUSTOM_OPENAI_API_URL
+                    api_url = config.CUSTOM_OPENAI_URL
                 elif slot_num == 2:
                     result = model.testTranslatorCustomOpenAI2Translation(text, input_lang, output_lang)
-                    model_name = config.CUSTOM_OPENAI_2_MODEL
-                    api_url = config.CUSTOM_OPENAI_2_API_URL
+                    model_name = config.CUSTOM_OPENAI_MODEL_2
+                    api_url = config.CUSTOM_OPENAI_URL_2
                 elif slot_num == 3:
                     result = model.testTranslatorCustomOpenAI3Translation(text, input_lang, output_lang)
-                    model_name = config.CUSTOM_OPENAI_3_MODEL
-                    api_url = config.CUSTOM_OPENAI_3_API_URL
+                    model_name = config.CUSTOM_OPENAI_MODEL_3
+                    api_url = config.CUSTOM_OPENAI_URL_3
                 else:
                     return {"status": 400, "result": {"error": f"Unknown Custom OpenAI slot: {slot_num}"}}
 
