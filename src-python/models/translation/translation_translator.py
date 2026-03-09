@@ -557,6 +557,15 @@ class Translator:
             return self.siliconflow_client.last_corrected_source
         return ""
 
+    def testSiliconFlowTranslation(self, text: str, input_lang: str, output_lang: str) -> str | bool:
+        """Test translation using the SiliconFlow client. Returns translated text or False on failure."""
+        if self.siliconflow_client is None:
+            return False
+        return self.siliconflow_client.translate(text, input_lang=input_lang, output_lang=output_lang)
+
+    def getSiliconFlowConnected(self) -> bool:
+        return self.siliconflow_client is not None
+
     def getLMStudioConnected(self) -> bool:
         """Get LM Studio connection status.
 

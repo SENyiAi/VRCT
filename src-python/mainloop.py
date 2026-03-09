@@ -346,6 +346,10 @@ mapping = {
     "/set/data/siliconflow_temperature": {"status": True, "variable":controller.setSiliconFlowTemperature},
     "/get/data/siliconflow_custom_system_prompt": {"status": True, "variable":controller.getSiliconFlowCustomSystemPrompt},
     "/set/data/siliconflow_custom_system_prompt": {"status": True, "variable":controller.setSiliconFlowCustomSystemPrompt},
+    "/run/test_siliconflow_translation": {"status": True, "variable":controller.testSiliconFlowTranslation},
+
+    # Developer test endpoint (Honkai page)
+    "/run/test_translation_engine_detailed": {"status": True, "variable":controller.testTranslationEngineDetailed},
 
     "/get/data/connected_lmstudio": {"status": True, "variable":controller.getTranslatorLMStudioConnection},
     "/run/lmstudio_connection": {"status": True, "variable":controller.checkTranslatorLMStudioConnection},

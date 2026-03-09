@@ -447,6 +447,12 @@ class Model:
     def getTranslatorSiliconFlowLastCorrectedSource(self) -> str:
         return self.translator.getSiliconFlowLastCorrectedSource()
 
+    def testTranslatorSiliconFlowTranslation(self, text: str, input_lang: str, output_lang: str) -> str | bool:
+        return self.translator.testSiliconFlowTranslation(text, input_lang, output_lang)
+
+    def getTranslatorSiliconFlowConnected(self) -> bool:
+        return self.translator.getSiliconFlowConnected()
+
     def getTranslatorLMStudioConnected(self) -> bool:
         self.ensure_initialized()
         return self.translator.getLMStudioConnected()

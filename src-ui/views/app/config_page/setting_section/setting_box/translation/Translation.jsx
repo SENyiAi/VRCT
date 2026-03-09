@@ -67,7 +67,6 @@ export const Translation = () => {
             <CustomOpenAITemperature_Box />
             <CustomOpenAICustomSystemPrompt_Box />
             <CustomOpenAIAsrCorrection_Box />
-            <CustomOpenAITestTranslation_Box />
 
             <CustomOpenAI2ConnectionCheck_Box />
             <CustomOpenAI2URL_Box />
@@ -77,7 +76,6 @@ export const Translation = () => {
             <CustomOpenAI2Temperature_Box />
             <CustomOpenAI2CustomSystemPrompt_Box />
             <CustomOpenAI2AsrCorrection_Box />
-            <CustomOpenAI2TestTranslation_Box />
 
             <CustomOpenAI3ConnectionCheck_Box />
             <CustomOpenAI3URL_Box />
@@ -87,7 +85,6 @@ export const Translation = () => {
             <CustomOpenAI3Temperature_Box />
             <CustomOpenAI3CustomSystemPrompt_Box />
             <CustomOpenAI3AsrCorrection_Box />
-            <CustomOpenAI3TestTranslation_Box />
 
             <TranslationFallback_Box />
 
@@ -604,78 +601,6 @@ const CustomOpenAIAsrCorrection_Box = () => {
     );
 };
 
-const CustomOpenAITestTranslation_Box = () => {
-    const { t } = useI18n();
-    const { currentCustomOpenAITestResult, testTranslation_CustomOpenAI } = useLLMConnection();
-    const [testText, setTestText] = useState("");
-    const [inputLang, setInputLang] = useState("Chinese (Simplified)");
-    const [outputLang, setOutputLang] = useState("Japanese");
-
-    const handleTest = () => {
-        if (testText.trim()) {
-            testTranslation_CustomOpenAI(testText, inputLang, outputLang);
-        }
-    };
-
-    return (
-        <div className={styles.test_translation_container}>
-            <div className={styles.test_translation_label}>
-                {t("config_page.translation.custom_openai_test_translation.label")}
-            </div>
-            <div className={styles.test_translation_inputs}>
-                <input
-                    className={styles.test_translation_lang_input}
-                    type="text"
-                    value={inputLang}
-                    onChange={(e) => setInputLang(e.target.value)}
-                    placeholder={t("config_page.translation.custom_openai_test_translation.input_lang_placeholder")}
-                />
-                <span className={styles.test_translation_arrow}>→</span>
-                <input
-                    className={styles.test_translation_lang_input}
-                    type="text"
-                    value={outputLang}
-                    onChange={(e) => setOutputLang(e.target.value)}
-                    placeholder={t("config_page.translation.custom_openai_test_translation.output_lang_placeholder")}
-                />
-            </div>
-            <div className={styles.test_translation_row}>
-                <input
-                    className={styles.test_translation_text_input}
-                    type="text"
-                    value={testText}
-                    onChange={(e) => setTestText(e.target.value)}
-                    placeholder={t("config_page.translation.custom_openai_test_translation.text_placeholder")}
-                    onKeyDown={(e) => { if (e.key === "Enter") handleTest(); }}
-                />
-                <button
-                    className={styles.test_translation_button}
-                    onClick={handleTest}
-                >
-                    {t("config_page.translation.custom_openai_test_translation.button")}
-                </button>
-            </div>
-            {currentCustomOpenAITestResult.data && (
-                <div className={styles.test_translation_result}>
-                    <span className={styles.test_translation_result_label}>
-                        {t("config_page.translation.custom_openai_test_translation.result")}
-                    </span>
-                    {currentCustomOpenAITestResult.state === "pending" ? (
-                        <span className={styles.test_translation_result_pending}>...</span>
-                    ) : (
-                        <span className={styles.test_translation_result_text}>{currentCustomOpenAITestResult.data}</span>
-                    )}
-                </div>
-            )}
-            {currentCustomOpenAITestResult.state === "pending" && !currentCustomOpenAITestResult.data && (
-                <div className={styles.test_translation_result}>
-                    <span className={styles.test_translation_result_pending}>...</span>
-                </div>
-            )}
-        </div>
-    );
-};
-
 // --- Extra params for Custom OpenAI slot 1 ---
 const CustomOpenAIMaxTokens_Box = () => {
     const { t } = useI18n();
@@ -901,49 +826,6 @@ const CustomOpenAI2AsrCorrection_Box = () => {
         />
     );
 };
-const CustomOpenAI2TestTranslation_Box = () => {
-    const { t } = useI18n();
-    const { currentCustomOpenAI2TestResult, testTranslation_CustomOpenAI2 } = useLLMConnection();
-    const [testText, setTestText] = useState("");
-    const [inputLang, setInputLang] = useState("Chinese (Simplified)");
-    const [outputLang, setOutputLang] = useState("Japanese");
-
-    const handleTest = () => {
-        if (testText.trim()) {
-            testTranslation_CustomOpenAI2(testText, inputLang, outputLang);
-        }
-    };
-
-    return (
-        <div className={styles.test_translation_container}>
-            <div className={styles.test_translation_label}>
-                {t("config_page.translation.custom_openai_2_test_translation.label")}
-            </div>
-            <div className={styles.test_translation_inputs}>
-                <input className={styles.test_translation_lang_input} type="text" value={inputLang} onChange={(e) => setInputLang(e.target.value)} placeholder={t("config_page.translation.custom_openai_test_translation.input_lang_placeholder")} />
-                <span className={styles.test_translation_arrow}>→</span>
-                <input className={styles.test_translation_lang_input} type="text" value={outputLang} onChange={(e) => setOutputLang(e.target.value)} placeholder={t("config_page.translation.custom_openai_test_translation.output_lang_placeholder")} />
-            </div>
-            <div className={styles.test_translation_row}>
-                <input className={styles.test_translation_text_input} type="text" value={testText} onChange={(e) => setTestText(e.target.value)} placeholder={t("config_page.translation.custom_openai_test_translation.text_placeholder")} onKeyDown={(e) => { if (e.key === "Enter") handleTest(); }} />
-                <button className={styles.test_translation_button} onClick={handleTest}>{t("config_page.translation.custom_openai_test_translation.button")}</button>
-            </div>
-            {currentCustomOpenAI2TestResult.data && (
-                <div className={styles.test_translation_result}>
-                    <span className={styles.test_translation_result_label}>{t("config_page.translation.custom_openai_test_translation.result")}</span>
-                    {currentCustomOpenAI2TestResult.state === "pending" ? (
-                        <span className={styles.test_translation_result_pending}>...</span>
-                    ) : (
-                        <span className={styles.test_translation_result_text}>{currentCustomOpenAI2TestResult.data}</span>
-                    )}
-                </div>
-            )}
-            {currentCustomOpenAI2TestResult.state === "pending" && !currentCustomOpenAI2TestResult.data && (
-                <div className={styles.test_translation_result}><span className={styles.test_translation_result_pending}>...</span></div>
-            )}
-        </div>
-    );
-};
 
 // --- Custom OpenAI 3 ---
 const CustomOpenAI3ConnectionCheck_Box = () => {
@@ -1100,49 +982,6 @@ const CustomOpenAI3AsrCorrection_Box = () => {
             toggleFunction={toggleCustomOpenAI3AsrCorrection}
             remove_border_bottom={true}
         />
-    );
-};
-const CustomOpenAI3TestTranslation_Box = () => {
-    const { t } = useI18n();
-    const { currentCustomOpenAI3TestResult, testTranslation_CustomOpenAI3 } = useLLMConnection();
-    const [testText, setTestText] = useState("");
-    const [inputLang, setInputLang] = useState("Chinese (Simplified)");
-    const [outputLang, setOutputLang] = useState("Japanese");
-
-    const handleTest = () => {
-        if (testText.trim()) {
-            testTranslation_CustomOpenAI3(testText, inputLang, outputLang);
-        }
-    };
-
-    return (
-        <div className={styles.test_translation_container}>
-            <div className={styles.test_translation_label}>
-                {t("config_page.translation.custom_openai_3_test_translation.label")}
-            </div>
-            <div className={styles.test_translation_inputs}>
-                <input className={styles.test_translation_lang_input} type="text" value={inputLang} onChange={(e) => setInputLang(e.target.value)} placeholder={t("config_page.translation.custom_openai_test_translation.input_lang_placeholder")} />
-                <span className={styles.test_translation_arrow}>→</span>
-                <input className={styles.test_translation_lang_input} type="text" value={outputLang} onChange={(e) => setOutputLang(e.target.value)} placeholder={t("config_page.translation.custom_openai_test_translation.output_lang_placeholder")} />
-            </div>
-            <div className={styles.test_translation_row}>
-                <input className={styles.test_translation_text_input} type="text" value={testText} onChange={(e) => setTestText(e.target.value)} placeholder={t("config_page.translation.custom_openai_test_translation.text_placeholder")} onKeyDown={(e) => { if (e.key === "Enter") handleTest(); }} />
-                <button className={styles.test_translation_button} onClick={handleTest}>{t("config_page.translation.custom_openai_test_translation.button")}</button>
-            </div>
-            {currentCustomOpenAI3TestResult.data && (
-                <div className={styles.test_translation_result}>
-                    <span className={styles.test_translation_result_label}>{t("config_page.translation.custom_openai_test_translation.result")}</span>
-                    {currentCustomOpenAI3TestResult.state === "pending" ? (
-                        <span className={styles.test_translation_result_pending}>...</span>
-                    ) : (
-                        <span className={styles.test_translation_result_text}>{currentCustomOpenAI3TestResult.data}</span>
-                    )}
-                </div>
-            )}
-            {currentCustomOpenAI3TestResult.state === "pending" && !currentCustomOpenAI3TestResult.data && (
-                <div className={styles.test_translation_result}><span className={styles.test_translation_result_pending}>...</span></div>
-            )}
-        </div>
     );
 };
 

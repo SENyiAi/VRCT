@@ -8,6 +8,7 @@ import {
     useStore_CustomOpenAI2TestResult,
     useStore_IsCustomOpenAI3Connected,
     useStore_CustomOpenAI3TestResult,
+    useStore_DevTestResult,
 } from "@store";
 
 export const useLLMConnection = () => {
@@ -52,6 +53,12 @@ export const useLLMConnection = () => {
         updateCustomOpenAI3TestResult,
         pendingCustomOpenAI3TestResult,
     } = useStore_CustomOpenAI3TestResult();
+
+    const {
+        currentDevTestResult,
+        updateDevTestResult,
+        pendingDevTestResult,
+    } = useStore_DevTestResult();
 
     const checkConnection_LMStudio = () => {
         pendingIsLMStudioConnected();
@@ -117,6 +124,14 @@ export const useLLMConnection = () => {
         updateCustomOpenAI3TestResult(result);
     };
 
+    const testTranslationDetailed = (engine, text, input_lang, output_lang, options = {}) => {
+        pendingDevTestResult();
+        asyncStdoutToPython("/run/test_translation_engine_detailed", { engine, text, input_lang, output_lang, options });
+    };
+    const setDetailedTestResult = (result) => {
+        updateDevTestResult(result);
+    };
+
     return {
         currentIsLMStudioConnected,
         updateIsLMStudioConnected,
@@ -154,5 +169,9 @@ export const useLLMConnection = () => {
         currentCustomOpenAI3TestResult,
         testTranslation_CustomOpenAI3,
         setTestTranslationResult_CustomOpenAI3,
+
+        currentDevTestResult,
+        testTranslationDetailed,
+        setDetailedTestResult,
     };
 };

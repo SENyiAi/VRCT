@@ -38,6 +38,9 @@ export const STATIC_ROUTE_META_LIST = [
     { endpoint: "/run/custom_openai_3_connection", ns: common, hook_name: "useLLMConnection", method_name: "setConnectionStatus_CustomOpenAI3" },
     { endpoint: "/run/test_custom_openai_3_translation", ns: common, hook_name: "useLLMConnection", method_name: "setTestTranslationResult_CustomOpenAI3" },
 
+    // Developer Test (Honkai)
+    { endpoint: "/run/test_translation_engine_detailed", ns: common, hook_name: "useLLMConnection", method_name: "setDetailedTestResult" },
+
     // Software Version
     { endpoint: "/get/data/version", ns: common, hook_name: "useSoftwareVersion", method_name: "updateSoftwareVersion" },
     // Latest Software Version Info

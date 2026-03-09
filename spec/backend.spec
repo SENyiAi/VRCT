@@ -37,16 +37,27 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        'pandas', 'matplotlib', 'PyQt5',
-        # torch submodules not needed by VRCT — excluding them cuts ~10min from Analysis
+        'pandas', 'matplotlib', 'PyQt5', 'tkinter', 'unittest',
+        'pip', 'pkg_resources._vendor', 'distutils',
+        # torch submodules not needed by VRCT — excluding them significantly
+        # reduces both Analysis time (10-15min) and output size (~100MB)
         'torch.distributed', 'torch.testing', 'torch.utils.tensorboard',
-        'torch.utils.benchmark', 'torch.utils.bottleneck',
+        'torch.utils.benchmark', 'torch.utils.bottleneck', 'torch.utils.data',
         'torch.ao', 'torch.onnx', 'torch.optim', 'torch.autograd',
         'torch.jit', 'torch.fx', 'torch.export', 'torch.compiler',
         'torch.profiler', 'torch.sparse', 'torch.nested',
         'torch.package', 'torch.hub', 'torch.nn.parallel',
         'torch._dynamo', 'torch._inductor', 'torch._functorch',
-        'torch.multiprocessing',
+        'torch.multiprocessing', 'torch.backends.cudnn',
+        'torch.cuda.amp', 'torch.cuda.profiler', 'torch.cuda.nvtx',
+        'torch.utils.cpp_extension', 'torch.utils.mobile_optimizer',
+        'torch.utils.mkldnn', 'torch.quantization',
+        'torch.nn.quantized', 'torch.nn.intrinsic',
+        'torch.nn.qat',
+        # Large unused transitive dependencies
+        'triton', 'sympy', 'networkx',
+        'torch.library', 'torch._refs', 'torch._prims',
+        'torch._subclasses', 'torch._higher_order_ops',
     ],
     noarchive=False,
     optimize=0,

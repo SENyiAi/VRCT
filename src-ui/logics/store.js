@@ -176,6 +176,9 @@ export const { atomInstance: Atom_CustomOpenAI2TestResult, useHook: useStore_Cus
 export const { atomInstance: Atom_IsCustomOpenAI3Connected, useHook: useStore_IsCustomOpenAI3Connected } = createAtomWithHook(false, "IsCustomOpenAI3Connected");
 export const { atomInstance: Atom_CustomOpenAI3TestResult, useHook: useStore_CustomOpenAI3TestResult } = createAtomWithHook("", "CustomOpenAI3TestResult");
 
+// Developer Test (Honkai)
+export const { atomInstance: Atom_DevTestResult, useHook: useStore_DevTestResult } = createAtomWithHook(null, "DevTestResult");
+
 // Main Page
 // Common
 export const { atomInstance: Atom_IsMainPageCompactMode, useHook: useStore_IsMainPageCompactMode } = createAtomWithHook(false, "IsMainPageCompactMode");

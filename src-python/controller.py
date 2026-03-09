@@ -2809,6 +2809,143 @@ class Controller:
             errorLogging()
             return VRCTError.create_exception_error_response(e, data=config.SILICONFLOW_CUSTOM_SYSTEM_PROMPT)
 
+    def testSiliconFlowTranslation(self, data, *args, **kwargs) -> dict:
+        printLog("Test SiliconFlow Translation", data)
+        try:
+            text = str(data.get("text", ""))
+            input_lang = str(data.get("input_lang", ""))
+            output_lang = str(data.get("output_lang", ""))
+            if not text or not input_lang or not output_lang:
+                raise Exception("Missing required fields: text, input_lang, output_lang")
+            result = model.testTranslatorSiliconFlowTranslation(text, input_lang, output_lang)
+            if result is False:
+                raise Exception("SiliconFlow client is not connected")
+            # Return detailed response for developer test panel
+            corrected = model.getTranslatorSiliconFlowLastCorrectedSource()
+            response = {
+                "status": 200,
+                "result": {
+                    "translated": result,
+                    "corrected_source": corrected if corrected else None,
+                    "engine": "SiliconFlow_API",
+                    "model": config.SILICONFLOW_MODEL,
+                    "enable_thinking": config.SILICONFLOW_ENABLE_THINKING,
+                    "enable_asr_correction": config.SILICONFLOW_ENABLE_ASR_CORRECTION,
+                },
+            }
+        except Exception as e:
+            errorLogging()
+            response = VRCTError.create_exception_error_response(e, data=None)
+        return response
+
+    def testTranslationEngineDetailed(self, data, *args, **kwargs) -> dict:
+        """Unified detailed test endpoint for all translation engines.
+
+        Accepts: {engine, text, input_lang, output_lang, options: {enable_thinking, enable_asr_correction}}
+        Returns detailed result with timing, raw output, and engine-specific info.
+        """
+        import time as _time
+        printLog("testTranslationEngineDetailed", data)
+        engine = str(data.get("engine", ""))
+        text = str(data.get("text", ""))
+        input_lang = str(data.get("input_lang", ""))
+        output_lang = str(data.get("output_lang", ""))
+        options = data.get("options", {}) or {}
+
+        if not engine or not text or not input_lang or not output_lang:
+            return {"status": 400, "result": {"error": "Missing required fields"}}
+
+        start = _time.time()
+        try:
+            if engine == "SiliconFlow_API":
+                # Temporarily apply options for this test
+                orig_thinking = config.SILICONFLOW_ENABLE_THINKING
+                orig_asr = config.SILICONFLOW_ENABLE_ASR_CORRECTION
+                if "enable_thinking" in options:
+                    config.SILICONFLOW_ENABLE_THINKING = bool(options["enable_thinking"])
+                    model.setTranslatorSiliconFlowEnableThinking(bool(options["enable_thinking"]))
+                if "enable_asr_correction" in options:
+                    config.SILICONFLOW_ENABLE_ASR_CORRECTION = bool(options["enable_asr_correction"])
+                    model.setTranslatorSiliconFlowAsrCorrection(bool(options["enable_asr_correction"]))
+                if model.getTranslatorSiliconFlowConnected():
+                    model.updateTranslatorSiliconFlowClient()
+
+                result = model.testTranslatorSiliconFlowTranslation(text, input_lang, output_lang)
+                elapsed = _time.time() - start
+                corrected = model.getTranslatorSiliconFlowLastCorrectedSource()
+
+                # Restore original options
+                config.SILICONFLOW_ENABLE_THINKING = orig_thinking
+                config.SILICONFLOW_ENABLE_ASR_CORRECTION = orig_asr
+                model.setTranslatorSiliconFlowEnableThinking(orig_thinking)
+                model.setTranslatorSiliconFlowAsrCorrection(orig_asr)
+                if model.getTranslatorSiliconFlowConnected():
+                    model.updateTranslatorSiliconFlowClient()
+
+                if result is False:
+                    return {"status": 400, "result": {"error": "SiliconFlow not connected"}}
+
+                return {"status": 200, "result": {
+                    "engine": engine,
+                    "model": config.SILICONFLOW_MODEL,
+                    "translated": result,
+                    "corrected_source": corrected or None,
+                    "elapsed_sec": round(elapsed, 3),
+                    "options_used": {
+                        "enable_thinking": bool(options.get("enable_thinking", orig_thinking)),
+                        "enable_asr_correction": bool(options.get("enable_asr_correction", orig_asr)),
+                        "temperature": config.SILICONFLOW_TEMPERATURE,
+                        "max_tokens": config.SILICONFLOW_MAX_TOKENS,
+                    },
+                    "input": {"text": text, "input_lang": input_lang, "output_lang": output_lang},
+                }}
+
+            elif engine.startswith("Custom_OpenAI"):
+                slot = engine.replace("Custom_OpenAI_API", "").replace("Custom_OpenAI", "")
+                slot_num = int(slot) if slot.isdigit() else 1
+
+                if slot_num == 1:
+                    result = model.testTranslatorCustomOpenAITranslation(text, input_lang, output_lang)
+                    model_name = config.CUSTOM_OPENAI_MODEL
+                    api_url = config.CUSTOM_OPENAI_API_URL
+                elif slot_num == 2:
+                    result = model.testTranslatorCustomOpenAI2Translation(text, input_lang, output_lang)
+                    model_name = config.CUSTOM_OPENAI_2_MODEL
+                    api_url = config.CUSTOM_OPENAI_2_API_URL
+                elif slot_num == 3:
+                    result = model.testTranslatorCustomOpenAI3Translation(text, input_lang, output_lang)
+                    model_name = config.CUSTOM_OPENAI_3_MODEL
+                    api_url = config.CUSTOM_OPENAI_3_API_URL
+                else:
+                    return {"status": 400, "result": {"error": f"Unknown Custom OpenAI slot: {slot_num}"}}
+
+                elapsed = _time.time() - start
+
+                if result is False:
+                    return {"status": 400, "result": {"error": f"Custom OpenAI {slot_num} not connected"}}
+
+                return {"status": 200, "result": {
+                    "engine": engine,
+                    "model": model_name,
+                    "api_url": api_url,
+                    "translated": result,
+                    "elapsed_sec": round(elapsed, 3),
+                    "options_used": {},
+                    "input": {"text": text, "input_lang": input_lang, "output_lang": output_lang},
+                }}
+
+            else:
+                return {"status": 400, "result": {"error": f"Unsupported engine for test: {engine}"}}
+
+        except Exception as e:
+            errorLogging()
+            elapsed = _time.time() - start
+            return {"status": 400, "result": {
+                "error": str(e),
+                "engine": engine,
+                "elapsed_sec": round(elapsed, 3),
+            }}
+
     def getTranslatorLMStudioConnection(self, *args, **kwargs) -> dict:
         return {"status":200, "result":model.getTranslatorLMStudioConnected()}
 
