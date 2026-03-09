@@ -19,7 +19,7 @@ def _authentication_check(api_key: str) -> bool:
     """Check if the provided API key is valid by attempting to list models.
     """
     try:
-        client = OpenAI(api_key=api_key, base_url=BASE_URL)
+        client = OpenAI(api_key=api_key, base_url=BASE_URL, timeout=30)
         client.models.list()
         return True
     except Exception:
@@ -28,7 +28,7 @@ def _authentication_check(api_key: str) -> bool:
 def _get_available_text_models(api_key: str) -> list[str]:
     """Extract all available models from the PLAMO API
     """
-    client = OpenAI(api_key=api_key, base_url=BASE_URL)
+    client = OpenAI(api_key=api_key, base_url=BASE_URL, timeout=30)
     res = client.models.list()
     allowed_models = []
 
@@ -88,6 +88,7 @@ class PlamoClient:
             model=self.model,
             streaming=False,
             api_key=SecretStr(self.api_key),
+            request_timeout=30,
         )
 
     def setContextHistory(self, history_items: list[dict]) -> None:

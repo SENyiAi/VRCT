@@ -18,7 +18,7 @@ def _authentication_check(api_key: str, base_url: str | None = None) -> bool:
     For custom base_url endpoints, accepts the key if models.list() is unsupported.
     """
     try:
-        client = OpenAI(api_key=api_key, base_url=base_url)
+        client = OpenAI(api_key=api_key, base_url=base_url, timeout=30)
         client.models.list()
         return True
     except Exception:
@@ -31,7 +31,7 @@ def _authentication_check(api_key: str, base_url: str | None = None) -> bool:
 def _get_available_text_models(api_key: str, base_url: str | None = None) -> list[str]:
     """Extract only GPT models suitable for translation and chat applications (plus those with fine-tuning)
     """
-    client = OpenAI(api_key=api_key, base_url=base_url)
+    client = OpenAI(api_key=api_key, base_url=base_url, timeout=30)
     res = client.models.list()
     allowed_models = []
 
@@ -125,6 +125,7 @@ class OpenAIClient:
             streaming=False,
             max_tokens=self.max_tokens if self.max_tokens > 0 else None,
             temperature=self.temperature,
+            request_timeout=30,
         )
 
     def setContextHistory(self, history_items: list[dict]) -> None:

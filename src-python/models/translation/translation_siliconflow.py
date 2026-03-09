@@ -58,6 +58,7 @@ def _authentication_check(api_key: str) -> bool:
         client = OpenAI(
             api_key=api_key,
             base_url="https://api.siliconflow.cn/v1",
+            timeout=30,
         )
         client.models.list()
         return True
@@ -68,6 +69,7 @@ def _get_available_text_models(api_key: str) -> list[str]:
     client = OpenAI(
         api_key=api_key,
         base_url="https://api.siliconflow.cn/v1",
+        timeout=30,
     )
     res = client.models.list()
     allowed_models = []
@@ -181,6 +183,7 @@ class SiliconFlowClient:
             max_tokens=self.max_tokens if self.max_tokens > 0 else None,
             temperature=self.temperature,
             model_kwargs=extra_kwargs,
+            request_timeout=30,
         )
         sf_logger.info(f"[SiliconFlow] Client updated: model={self.model} thinking={self.enable_thinking} asr_correction={self.enable_asr_correction} temp={self.temperature} max_tokens={self.max_tokens} top_p={extra_kwargs.get('top_p')}")
 

@@ -94,6 +94,7 @@ class LMStudioClient:
             model=self.model,
             api_key=SecretStr(self.api_key),
             streaming=False,
+            request_timeout=30,
         )
 
     def setContextHistory(self, history_items: list[dict]) -> None:

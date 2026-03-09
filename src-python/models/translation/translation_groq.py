@@ -20,6 +20,7 @@ def _authentication_check(api_key: str) -> bool:
         client = OpenAI(
             api_key=api_key,
             base_url="https://api.groq.com/openai/v1",
+            timeout=30,
         )
         client.models.list()
         return True
@@ -32,6 +33,7 @@ def _get_available_text_models(api_key: str) -> list[str]:
     client = OpenAI(
         api_key=api_key,
         base_url="https://api.groq.com/openai/v1",
+        timeout=30,
     )
     res = client.models.list()
     allowed_models = []
@@ -117,6 +119,7 @@ class GroqClient:
             model=self.model,
             api_key=SecretStr(self.api_key),
             streaming=False,
+            request_timeout=30,
         )
 
     def setContextHistory(self, history_items: list[dict]) -> None:

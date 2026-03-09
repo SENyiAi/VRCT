@@ -30,7 +30,7 @@ def _authentication_check(api_key: str) -> bool:
 def _get_available_text_models(api_key: str, base_url: str | None = None) -> list[str]:
     """Extract only OpenRouter models suitable for translation and chat applications.
     """
-    client = OpenAI(api_key=api_key, base_url=base_url)
+    client = OpenAI(api_key=api_key, base_url=base_url, timeout=30)
     res = client.models.list()
     allowed_models = []
 
@@ -115,6 +115,7 @@ class OpenRouterClient:
             model=self.model,
             api_key=SecretStr(self.api_key),
             streaming=False,
+            request_timeout=30,
         )
 
     def setContextHistory(self, history_items: list[dict]) -> None:
