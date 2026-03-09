@@ -2828,7 +2828,7 @@ class Controller:
                     "translated": result,
                     "corrected_source": corrected if corrected else None,
                     "engine": "SiliconFlow_API",
-                    "model": config.SILICONFLOW_MODEL,
+                    "model": config.SELECTED_SILICONFLOW_MODEL,
                     "enable_thinking": config.SILICONFLOW_ENABLE_THINKING,
                     "enable_asr_correction": config.SILICONFLOW_ENABLE_ASR_CORRECTION,
                 },
@@ -2853,7 +2853,7 @@ class Controller:
         options = data.get("options", {}) or {}
 
         if not engine or not text or not input_lang or not output_lang:
-            return {"status": 400, "result": {"error": "Missing required fields"}}
+            return {"status": 200, "result": {"error": "Missing required fields"}}
 
         start = _time.time()
         try:
@@ -2883,11 +2883,11 @@ class Controller:
                     model.updateTranslatorSiliconFlowClient()
 
                 if result is False:
-                    return {"status": 400, "result": {"error": "SiliconFlow not connected"}}
+                    return {"status": 200, "result": {"error": "SiliconFlow not connected"}}
 
                 return {"status": 200, "result": {
                     "engine": engine,
-                    "model": config.SILICONFLOW_MODEL,
+                    "model": config.SELECTED_SILICONFLOW_MODEL,
                     "translated": result,
                     "corrected_source": corrected or None,
                     "elapsed_sec": round(elapsed, 3),
@@ -2917,12 +2917,12 @@ class Controller:
                     model_name = config.CUSTOM_OPENAI_MODEL_3
                     api_url = config.CUSTOM_OPENAI_URL_3
                 else:
-                    return {"status": 400, "result": {"error": f"Unknown Custom OpenAI slot: {slot_num}"}}
+                    return {"status": 200, "result": {"error": f"Unknown Custom OpenAI slot: {slot_num}"}}
 
                 elapsed = _time.time() - start
 
                 if result is False:
-                    return {"status": 400, "result": {"error": f"Custom OpenAI {slot_num} not connected"}}
+                    return {"status": 200, "result": {"error": f"Custom OpenAI {slot_num} not connected"}}
 
                 return {"status": 200, "result": {
                     "engine": engine,
@@ -2935,12 +2935,12 @@ class Controller:
                 }}
 
             else:
-                return {"status": 400, "result": {"error": f"Unsupported engine for test: {engine}"}}
+                return {"status": 200, "result": {"error": f"Unsupported engine for test: {engine}"}}
 
         except Exception as e:
             errorLogging()
             elapsed = _time.time() - start
-            return {"status": 400, "result": {
+            return {"status": 200, "result": {
                 "error": str(e),
                 "engine": engine,
                 "elapsed_sec": round(elapsed, 3),

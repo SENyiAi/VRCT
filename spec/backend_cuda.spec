@@ -12,7 +12,7 @@ a = Analysis(
         ('./../.venv_cuda/Lib/site-packages/zeroconf', 'zeroconf/'),
         ('./../.venv_cuda/Lib/site-packages/openvr', 'openvr/'),
         ('./../.venv_cuda/Lib/site-packages/faster_whisper', 'faster_whisper/'),
-        ('./../.venv/Lib/site-packages/hf_xet', 'hf_xet/')
+        ('./../.venv_cuda/Lib/site-packages/hf_xet', 'hf_xet/')
         ],
     hiddenimports=[],
     hookspath=[],
