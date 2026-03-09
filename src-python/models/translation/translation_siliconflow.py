@@ -1,6 +1,4 @@
 from openai import OpenAI
-from langchain_openai import ChatOpenAI
-from pydantic import SecretStr
 import re
 import logging
 import time
@@ -125,6 +123,7 @@ class SiliconFlowClient:
         self.enable_thinking = False
         self.max_tokens = 1024
         self.temperature = 0.4
+        self.top_p = 0.9
         self.custom_system_prompt = ""
 
         prompt_config = loadTranslatePromptConfig(root_path, "translation_siliconflow.yml")
@@ -170,19 +169,14 @@ class SiliconFlowClient:
             return False
 
     def updateClient(self) -> None:
-        top_p_value = 0.95 if self.enable_thinking else 0.9
-        self.siliconflow_llm = ChatOpenAI(
+        self.top_p = 0.95 if self.enable_thinking else 0.9
+        self.siliconflow_llm = OpenAI(
             base_url=self.base_url,
-            model=self.model,
-            api_key=SecretStr(self.api_key),
-            streaming=False,
-            max_tokens=self.max_tokens if self.max_tokens > 0 else None,
-            temperature=self.temperature,
-            top_p=top_p_value,
-            request_timeout=60,
+            api_key=self.api_key,
+            timeout=60,
             max_retries=0,
         )
-        sf_logger.info(f"[SiliconFlow] Client updated: model={self.model} thinking={self.enable_thinking} asr_correction={self.enable_asr_correction} temp={self.temperature} max_tokens={self.max_tokens} top_p={top_p_value}")
+        sf_logger.info(f"[SiliconFlow] Client updated: model={self.model} thinking={self.enable_thinking} asr_correction={self.enable_asr_correction} temp={self.temperature} max_tokens={self.max_tokens} top_p={self.top_p}")
 
     def setContextHistory(self, history_items: list[dict]) -> None:
         self._context_history = history_items or []
@@ -245,19 +239,15 @@ class SiliconFlowClient:
         sf_logger.debug(f"[SiliconFlow Input] text={text}")
 
         start_time = time.time()
-        resp = self.siliconflow_llm.invoke(messages)
+        resp = self.siliconflow_llm.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            max_tokens=self.max_tokens if self.max_tokens > 0 else None,
+            temperature=self.temperature,
+            top_p=self.top_p,
+        )
         elapsed = time.time() - start_time
-
-        content = ""
-        if isinstance(resp.content, str):
-            content = resp.content
-        elif isinstance(resp.content, list):
-            for part in resp.content:
-                if isinstance(part, str):
-                    content += part
-                elif isinstance(part, dict) and "content" in part and isinstance(part["content"], str):
-                    content += part["content"]
-        content = content.strip()
+        content = (resp.choices[0].message.content or "").strip()
 
         sf_logger.info(f"[SiliconFlow Response] elapsed={elapsed:.2f}s len={len(content)}")
         sf_logger.debug(f"[SiliconFlow Output Raw] content={content[:500]}")

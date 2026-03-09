@@ -1,6 +1,6 @@
 import logging
 from google import genai
-from langchain_google_genai import ChatGoogleGenerativeAI
+from google.genai import types
 
 try:
     from .translation_languages import translation_lang
@@ -13,8 +13,6 @@ except Exception:
     from translation_languages import translation_lang
     from translation_utils import loadTranslatePromptConfig
 
-logger = logging.getLogger("langchain_google_genai")
-logger.setLevel(logging.ERROR)
 
 def _authentication_check(api_key: str) -> bool:
     """Check if the provided API key is valid by attempting to list models.
@@ -71,7 +69,7 @@ class GeminiClient:
         })
         self._context_history: list[dict] = []
 
-        self.gemini_llm = None
+        self._gemini_client = None
 
     def getModelList(self) -> list[str]:
         return _get_available_text_models(self.api_key)
@@ -96,10 +94,7 @@ class GeminiClient:
             return False
 
     def updateClient(self) -> None:
-        self.gemini_llm = ChatGoogleGenerativeAI(
-            model=self.model,
-            api_key=self.api_key,
-        )
+        self._gemini_client = genai.Client(api_key=self.api_key)
 
     def setContextHistory(self, history_items: list[dict]) -> None:
         """Set recent conversation history for prompt injection.
@@ -154,21 +149,16 @@ class GeminiClient:
             if history_header:
                 system_prompt = f"{system_prompt}\n\n{history_header}"
 
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": text}
-        ]
-
-        resp = self.gemini_llm.invoke(messages)
-        content = ""
-        if isinstance(resp.content, str):
-            content = resp.content
-        elif isinstance(resp.content, list):
-            for part in resp.content:
-                if isinstance(part, str):
-                    content += part
-                elif isinstance(part, dict) and "content" in part and isinstance(part["content"], str):
-                    content += part["content"]
+        resp = self._gemini_client.models.generate_content(
+            model=self.model,
+            contents=text,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                temperature=0.3,
+                max_output_tokens=2048,
+            ),
+        )
+        content = resp.text or ""
         return content.strip()
 
 if __name__ == "__main__":

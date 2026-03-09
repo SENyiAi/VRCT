@@ -1,6 +1,4 @@
 from openai import OpenAI
-from langchain_openai import ChatOpenAI
-from pydantic import SecretStr
 
 try:
     from .translation_languages import translation_lang
@@ -118,14 +116,10 @@ class OpenAIClient:
             return False
 
     def updateClient(self) -> None:
-        self.openai_llm = ChatOpenAI(
+        self.openai_llm = OpenAI(
             base_url=self.base_url,
-            model=self.model,
-            api_key=SecretStr(self.api_key),
-            streaming=False,
-            max_tokens=self.max_tokens if self.max_tokens > 0 else None,
-            temperature=self.temperature,
-            request_timeout=60,
+            api_key=self.api_key,
+            timeout=60,
             max_retries=0,
         )
 
@@ -197,16 +191,13 @@ class OpenAIClient:
             {"role": "user", "content": text},
         ]
 
-        resp = self.openai_llm.invoke(messages)
-        content = ""
-        if isinstance(resp.content, str):
-            content = resp.content
-        elif isinstance(resp.content, list):
-            for part in resp.content:
-                if isinstance(part, str):
-                    content += part
-                elif isinstance(part, dict) and "content" in part and isinstance(part["content"], str):
-                    content += part["content"]
+        resp = self.openai_llm.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            max_tokens=self.max_tokens if self.max_tokens > 0 else None,
+            temperature=self.temperature,
+        )
+        content = resp.choices[0].message.content or ""
         return content.strip()
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['pandas', 'matplotlib', 'PyQt5', 'torch', 'ctranslate2', 'transformers', 'faster_whisper', 'whisper', 'sentencepiece'],
+    excludes=['pandas', 'matplotlib', 'PyQt5', 'torch', 'ctranslate2', 'transformers', 'faster_whisper', 'whisper', 'sentencepiece', 'grpcio', 'langchain_core', 'langchain_openai', 'langchain_google_genai', 'langsmith'],
     noarchive=False,
     optimize=0,
 )
