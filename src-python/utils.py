@@ -187,8 +187,22 @@ def encodeBase64(data: str) -> Dict[str, Any]:
         return {}
 
 def removeLog() -> None:
-    """Truncate the process log file (process.log) if present."""
+    """Rotate the process log file on startup instead of discarding it.
+
+    If process.log exists and is non-empty, rename it to process.log.old
+    (overwriting a previous backup) so the previous session's log is preserved.
+    Then create a fresh process.log.
+    """
     try:
+        import os
+        if os.path.exists('process.log') and os.path.getsize('process.log') > 0:
+            # Keep one backup of the previous session
+            try:
+                if os.path.exists('process.log.old'):
+                    os.remove('process.log.old')
+                os.rename('process.log', 'process.log.old')
+            except Exception:
+                pass
         with open('process.log', 'w', encoding="utf-8") as f:
             f.write("")
     except Exception:

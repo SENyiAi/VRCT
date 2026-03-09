@@ -985,13 +985,36 @@ class Controller:
         return {"status":200,"result":config.SELECTED_TRANSLATION_ENGINES}
 
     @staticmethod
+    def _enrich_languages_with_webview_code(languages: dict) -> dict:
+        """Add WebView BCP-47 language codes to the selected language data."""
+        from models.transcription.transcription_languages import transcription_lang
+        enriched = {}
+        for tab_key, tab_val in languages.items():
+            enriched[tab_key] = {}
+            for lang_key, lang_val in tab_val.items():
+                if not isinstance(lang_val, dict):
+                    enriched[tab_key][lang_key] = lang_val
+                    continue
+                e = dict(lang_val)
+                lang = lang_val.get("language", "")
+                country = lang_val.get("country", "")
+                e["webview_code"] = (
+                    transcription_lang
+                    .get(lang, {})
+                    .get(country, {})
+                    .get("WebView", "en-US")
+                )
+                enriched[tab_key][lang_key] = e
+        return enriched
+
+    @staticmethod
     def getSelectedYourLanguages(*args, **kwargs) -> dict:
-        return {"status":200, "result":config.SELECTED_YOUR_LANGUAGES}
+        return {"status":200, "result":Controller._enrich_languages_with_webview_code(config.SELECTED_YOUR_LANGUAGES)}
 
     def setSelectedYourLanguages(self, select:dict, *args, **kwargs) -> dict:
         config.SELECTED_YOUR_LANGUAGES = select
         self.updateTranslationEngineAndEngineList()
-        return {"status":200, "result":config.SELECTED_YOUR_LANGUAGES}
+        return {"status":200, "result":Controller._enrich_languages_with_webview_code(config.SELECTED_YOUR_LANGUAGES)}
 
     @staticmethod
     def getSelectedTargetLanguages(*args, **kwargs) -> dict:
@@ -3302,73 +3325,23 @@ class Controller:
         is_final = data.get("is_final", True)
         if not text or not is_final:
             return {"status":200, "result":True}
+
+        # Resolve language from config if not provided by the frontend
+        if language is None:
+            selected = config.SELECTED_YOUR_LANGUAGES.get(config.SELECTED_TAB_NO, {})
+            first_lang = next(
+                (v for v in selected.values() if v.get("enable")),
+                None,
+            )
+            if first_lang:
+                language = first_lang.get("language", None)
+
         # Feed into the same pipeline as mic transcription
         result = {"text": text, "language": language}
         try:
             self.micMessage(result)
         except Exception:
             errorLogging()
-        return {"status":200, "result":True}
-
-    def webviewAudioChunk(self, data, *args, **kwargs) -> dict:
-        """Process raw audio captured by browser getUserMedia, recognize speech in background."""
-        def _recognize():
-            try:
-                import base64
-                import speech_recognition as sr
-                from models.transcription.transcription_languages import transcription_lang
-
-                audio_b64 = data.get("audio_base64", "")
-                sample_rate = data.get("sample_rate", 16000)
-                sample_width = data.get("sample_width", 2)
-
-                if not audio_b64:
-                    return
-
-                raw_audio = base64.b64decode(audio_b64)
-                printLog(f"[WebView Audio] Received {len(raw_audio)} bytes, rate={sample_rate}")
-
-                audio_data = sr.AudioData(raw_audio, sample_rate, sample_width)
-
-                # Get language info from the currently selected your-language
-                selected = config.SELECTED_YOUR_LANGUAGES.get(config.SELECTED_TAB_NO, {})
-                first_lang = next(
-                    (v for v in selected.values() if v.get("enable")),
-                    None,
-                )
-                if first_lang is None:
-                    printLog("[WebView Audio] No enabled language configured")
-                    return
-
-                language = first_lang.get("language", "")
-                country = first_lang.get("country", "")
-
-                # Look up Google BCP-47 code (used by recognize_google)
-                lang_code = (
-                    transcription_lang
-                    .get(language, {})
-                    .get(country, {})
-                    .get("Google", "en-US")
-                )
-
-                recognizer = sr.Recognizer()
-                try:
-                    text = recognizer.recognize_google(audio_data, language=lang_code)
-                except sr.UnknownValueError:
-                    printLog("[WebView Audio] No speech recognized in audio chunk")
-                    return
-                except sr.RequestError as e:
-                    printLog(f"[WebView Audio] Google recognition API error: {e}")
-                    return
-
-                if text and text.strip():
-                    printLog(f"[WebView Audio] Recognized: {text}")
-                    result = {"text": text.strip(), "language": language}
-                    self.micMessage(result)
-            except Exception:
-                errorLogging()
-
-        Thread(target=_recognize, daemon=True).start()
         return {"status":200, "result":True}
 
     def sendMessageBox(self, data, *args, **kwargs) -> dict:

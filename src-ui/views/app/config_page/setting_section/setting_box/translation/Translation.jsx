@@ -596,7 +596,7 @@ const CustomOpenAIAsrCorrection_Box = () => {
             <SwitchBoxContainer
                 label={t("config_page.translation.custom_openai_asr_correction.label")}
                 desc={t("config_page.translation.custom_openai_asr_correction.desc")}
-                variable={currentCustomOpenAIAsrCorrection.data}
+                variable={currentCustomOpenAIAsrCorrection}
                 toggleFunction={toggleCustomOpenAIAsrCorrection}
                 remove_border_bottom={true}
             />
@@ -895,7 +895,7 @@ const CustomOpenAI2AsrCorrection_Box = () => {
         <SwitchBoxContainer
             label={t("config_page.translation.custom_openai_2_asr_correction.label")}
             desc={t("config_page.translation.custom_openai_asr_correction.desc")}
-            variable={currentCustomOpenAI2AsrCorrection.data}
+            variable={currentCustomOpenAI2AsrCorrection}
             toggleFunction={toggleCustomOpenAI2AsrCorrection}
             remove_border_bottom={true}
         />
@@ -1096,7 +1096,7 @@ const CustomOpenAI3AsrCorrection_Box = () => {
         <SwitchBoxContainer
             label={t("config_page.translation.custom_openai_3_asr_correction.label")}
             desc={t("config_page.translation.custom_openai_asr_correction.desc")}
-            variable={currentCustomOpenAI3AsrCorrection.data}
+            variable={currentCustomOpenAI3AsrCorrection}
             toggleFunction={toggleCustomOpenAI3AsrCorrection}
             remove_border_bottom={true}
         />
@@ -1172,7 +1172,7 @@ const TranslationFallback_Box = () => {
             <SwitchBoxContainer
                 label={t("config_page.translation.translation_fallback_enabled.label")}
                 desc={t("config_page.translation.translation_fallback_enabled.desc")}
-                variable={currentTranslationFallbackEnabled.data}
+                variable={currentTranslationFallbackEnabled}
                 toggleFunction={toggleTranslationFallbackEnabled}
                 remove_border_bottom={true}
             />
@@ -1385,7 +1385,7 @@ const SiliconFlowAsrCorrection_Box = () => {
         <SwitchBoxContainer
             label={t("config_page.translation.siliconflow_asr_correction.label")}
             desc={t("config_page.translation.siliconflow_asr_correction.desc")}
-            variable={currentSiliconFlowAsrCorrection.data}
+            variable={currentSiliconFlowAsrCorrection}
             toggleFunction={toggleSiliconFlowAsrCorrection}
             remove_border_bottom={true}
         />
@@ -1400,7 +1400,7 @@ const SiliconFlowEnableThinking_Box = () => {
         <SwitchBoxContainer
             label={t("config_page.translation.siliconflow_enable_thinking.label")}
             desc={t("config_page.translation.siliconflow_enable_thinking.desc")}
-            variable={currentSiliconFlowEnableThinking.data}
+            variable={currentSiliconFlowEnableThinking}
             toggleFunction={toggleSiliconFlowEnableThinking}
             remove_border_bottom={true}
         />

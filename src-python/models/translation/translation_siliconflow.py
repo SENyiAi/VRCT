@@ -20,7 +20,11 @@ sf_logger = logging.getLogger("siliconflow")
 sf_logger.setLevel(logging.DEBUG)
 
 def _setup_sf_logger(log_dir: str = None):
-    """Set up file handler for SiliconFlow logger if not already configured."""
+    """Set up file handler for SiliconFlow logger if not already configured.
+
+    Writes to both siliconflow.log (detailed) and process.log (info-level)
+    so API call records are visible in the main log file.
+    """
     if sf_logger.handlers:
         return
     try:
@@ -35,6 +39,17 @@ def _setup_sf_logger(log_dir: str = None):
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
         handler.setFormatter(formatter)
         sf_logger.addHandler(handler)
+
+        # Also mirror INFO+ messages to process.log so users can see API records
+        process_log_path = os.path.join(log_dir, "..", "process.log") if log_dir else "process.log"
+        process_log_path = os.path.normpath(process_log_path)
+        from logging.handlers import RotatingFileHandler
+        process_handler = RotatingFileHandler(
+            process_log_path, maxBytes=10*1024*1024, backupCount=1, encoding="utf-8", delay=True
+        )
+        process_handler.setLevel(logging.INFO)
+        process_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        sf_logger.addHandler(process_handler)
     except Exception:
         pass
 

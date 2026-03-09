@@ -45,7 +45,7 @@ from models.overlay.overlay_image import OverlayImage
 from models.watchdog.watchdog import Watchdog
 from models.websocket.websocket_server import WebSocketServer
 from models.clipboard.clipboard import Clipboard
-from utils import errorLogging, setupLogger
+from utils import errorLogging, setupLogger, printLog
 
 class threadFnc(Thread):
     """A tiny Thread wrapper that repeatedly calls a function.
@@ -587,6 +587,8 @@ class Model:
         self.ensure_initialized()
         success_flag = False
 
+        printLog(f"[Translation] engine={translator_name} {source_language}->{target_language} input_len={len(message)}")
+
         # Get context history for LLM-based translators
         history = self.getTranslationHistory()
 
@@ -607,11 +609,13 @@ class Model:
                 )
                 try:
                     translation = future.result(timeout=timeout)
-                except (FuturesTimeoutError, Exception):
+                except (FuturesTimeoutError, Exception) as e:
                     translation = None
+                    printLog(f"[Translation] Primary engine timeout/error: {type(e).__name__}")
                     # Try fallback engine
                     fallback_engine = config.TRANSLATION_FALLBACK_ENGINE
                     if fallback_engine and fallback_engine != translator_name:
+                        printLog(f"[Translation] Falling back to {fallback_engine}")
                         try:
                             translation = self.translator.translate(
                                 translator_name=fallback_engine,
@@ -638,7 +642,9 @@ class Model:
         # 翻訳失敗時のフェールセーフ処理
         if isinstance(translation, str):
             success_flag = True
+            printLog(f"[Translation] Success: output_len={len(translation)}")
         else:
+            printLog(f"[Translation] Failed, falling back to CTranslate2")
             while True:
                 translation = self.translator.translate(
                                     translator_name="CTranslate2",
