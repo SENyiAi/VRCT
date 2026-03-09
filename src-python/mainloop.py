@@ -119,6 +119,7 @@ mapping = {
     "/set/disable/transcription_send": {"status": False, "variable":controller.setDisableTranscriptionSend},
 
     "/run/webview_transcription_result": {"status": True, "variable":controller.webviewTranscriptionResult},
+    "/run/webview_audio_chunk": {"status": True, "variable":controller.webviewAudioChunk},
 
     "/set/enable/transcription_receive": {"status": False, "variable":controller.setEnableTranscriptionReceive},
     "/set/disable/transcription_receive": {"status": False, "variable":controller.setDisableTranscriptionReceive},

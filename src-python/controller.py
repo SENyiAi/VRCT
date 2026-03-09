@@ -3310,6 +3310,67 @@ class Controller:
             errorLogging()
         return {"status":200, "result":True}
 
+    def webviewAudioChunk(self, data, *args, **kwargs) -> dict:
+        """Process raw audio captured by browser getUserMedia, recognize speech in background."""
+        def _recognize():
+            try:
+                import base64
+                import speech_recognition as sr
+                from models.transcription.transcription_languages import transcription_lang
+
+                audio_b64 = data.get("audio_base64", "")
+                sample_rate = data.get("sample_rate", 16000)
+                sample_width = data.get("sample_width", 2)
+
+                if not audio_b64:
+                    return
+
+                raw_audio = base64.b64decode(audio_b64)
+                printLog(f"[WebView Audio] Received {len(raw_audio)} bytes, rate={sample_rate}")
+
+                audio_data = sr.AudioData(raw_audio, sample_rate, sample_width)
+
+                # Get language info from the currently selected your-language
+                selected = config.SELECTED_YOUR_LANGUAGES.get(config.SELECTED_TAB_NO, {})
+                first_lang = next(
+                    (v for v in selected.values() if v.get("enable")),
+                    None,
+                )
+                if first_lang is None:
+                    printLog("[WebView Audio] No enabled language configured")
+                    return
+
+                language = first_lang.get("language", "")
+                country = first_lang.get("country", "")
+
+                # Look up Google BCP-47 code (used by recognize_google)
+                lang_code = (
+                    transcription_lang
+                    .get(language, {})
+                    .get(country, {})
+                    .get("Google", "en-US")
+                )
+
+                recognizer = sr.Recognizer()
+                try:
+                    text = recognizer.recognize_google(audio_data, language=lang_code)
+                except sr.UnknownValueError:
+                    printLog("[WebView Audio] No speech recognized in audio chunk")
+                    return
+                except sr.RequestError as e:
+                    printLog(f"[WebView Audio] Google recognition API error: {e}")
+                    return
+
+                if text and text.strip():
+                    printLog(f"[WebView Audio] Recognized: {text}")
+                    result = {"text": text.strip(), "language": language}
+                    self.micMessage(result)
+            except Exception:
+                errorLogging()
+
+        Thread(target=_recognize, daemon=True).start()
+        return {"status":200, "result":True}
+
     def sendMessageBox(self, data, *args, **kwargs) -> dict:
         response = self.chatMessage(data)
         return response
